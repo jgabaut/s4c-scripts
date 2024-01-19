@@ -1,0 +1,25 @@
+[project]
+name = "s4c-scripts"
+version = "0.1.0"
+authors = [
+    { name="jgabaut", email="jgabaut@github.com" },
+]
+description = "An helper for using sprites with ncurses in C."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+]
+
+[project.scripts]
+s4c = "s4c.s4c_cli:main"
+
+[project.urls]
+Homepage = "github.com/jgabaut/s4c-scripts"
+Issues = "github.com/jgabaut/s4c-scripts/issues"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

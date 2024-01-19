@@ -1,0 +1,8 @@
+# ignore dist dir
+dist
+# ignore __pycache__
+__pycache__
+# ignore build dir
+build
+# ignore egg info dir
+s4c_scripts.egg-info
