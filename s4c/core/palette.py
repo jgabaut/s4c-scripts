@@ -33,7 +33,7 @@
 # Imports
 import sys
 import os
-from s4c.core.utils import convert_mode_lit
+from .utils import convert_mode_lit
 
 ## The file format version.
 FILE_VERSION = "0.2.2"

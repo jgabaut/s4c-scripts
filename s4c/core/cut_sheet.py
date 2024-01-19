@@ -42,9 +42,9 @@
 import sys
 import os
 from PIL import Image
-from s4c.core.utils import log_wrong_argnum
-from s4c.core.utils import intparse_args
-from s4c.core.utils import SheetArgs
+from .utils import log_wrong_argnum
+from .utils import intparse_args
+from .utils import SheetArgs
 
 SCRIPT_VERSION="0.1.0"
 

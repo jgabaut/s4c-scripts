@@ -41,13 +41,13 @@
 import sys
 import os
 from PIL import Image
-from s4c.core.utils import convert_mode_lit
-from s4c.core.utils import print_animation_header
-from s4c.core.utils import get_converted_char
-from s4c.core.utils import new_char_map
-from s4c.core.utils import log_wrong_argnum
-from s4c.core.utils import intparse_args
-from s4c.core.utils import SheetArgs
+from .utils import convert_mode_lit
+from .utils import print_animation_header
+from .utils import get_converted_char
+from .utils import new_char_map
+from .utils import log_wrong_argnum
+from .utils import intparse_args
+from .utils import SheetArgs
 
 ## The file format version.
 FILE_VERSION = "0.2.2"

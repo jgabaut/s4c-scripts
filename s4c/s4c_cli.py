@@ -36,11 +36,11 @@
 
 import sys
 import os
-from s4c.core.cut_sheet import main as cut_sheet_main
-from s4c.core.palette import main as palette_main
-from s4c.core.sprites import main as sprites_main
-from s4c.core.sheet_converter import main as sheet_converter_main
-from s4c.core.png_resize import main as png_resize_main
+from .core.cut_sheet import main as cut_sheet_main
+from .core.palette import main as palette_main
+from .core.sprites import main as sprites_main
+from .core.sheet_converter import main as sheet_converter_main
+from .core.png_resize import main as png_resize_main
 
 S4C_CLI_VERSION = "0.1.0"
 
