@@ -1,0 +1,15 @@
+[ anvil ]
+
+kern = "anvilPy"
+version = "2.1.0"
+
+[ build ]
+
+bin = "s4c"
+source = "s4c_cli.py"
+makevers = "1.0.0"
+automakevers = "1.0.0"
+
+[ versions ]
+
+"0.1.0" = "First release"

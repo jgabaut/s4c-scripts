@@ -6,3 +6,9 @@ __pycache__
 build
 # ignore egg info dir
 s4c_scripts.egg-info
+
+# ignore anvil dir
+bin
+
+# ignore anvil logfile
+anvil.log
