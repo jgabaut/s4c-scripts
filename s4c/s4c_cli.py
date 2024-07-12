@@ -42,7 +42,7 @@ from .core.sprites import main as sprites_main
 from .core.sheet_converter import main as sheet_converter_main
 from .core.png_resize import main as png_resize_main
 
-S4C_CLI_VERSION = "0.1.1"
+S4C_CLI_VERSION = "0.1.2"
 
 EXPECTED_S4C_ANIMATE_V = "0.4.2"
 
