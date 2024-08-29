@@ -28,7 +28,7 @@
 #
 # @section author_palette Author(s)
 # - Created by jgabaut on 01/09/2023.
-# - Modified by jgabaut on 19/01/2024.
+# - Modified by jgabaut on 29/08/2024.
 
 # Imports
 import sys
@@ -37,7 +37,7 @@ from .utils import convert_mode_lit
 
 ## The file format version.
 FILE_VERSION = "0.2.2"
-SCRIPT_VERSION = "0.1.0"
+SCRIPT_VERSION = "0.1.1"
 F_STRING_ARGS = "<mode> <palette> <s4c path>"
 
 # Expects the palette name as first argument, output directory as second argument.
@@ -109,7 +109,7 @@ def convert_palette(mode, palette_path, s4c_path):
     if mode == "header":
         print(f"#ifndef {target_name.upper()}_S4C_H_")
         print(f"#define {target_name.upper()}_S4C_H_")
-        print(f"#include \"{s4c_path}/sprites4curses/s4c-animate/animate.h\"\n")
+        print(f"#include \"{s4c_path}/sprites4curses/src/s4c.h\"\n")
         print(f"#define {target_name.upper()}_S4C_H_VERSION \"{FILE_VERSION}\"")
         print(f"#define {target_name.upper()}_S4C_H_TOTCOLORS {read_colors}")
         print("\n/**")

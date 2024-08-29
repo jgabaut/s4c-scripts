@@ -42,9 +42,9 @@ from .core.sprites import main as sprites_main
 from .core.sheet_converter import main as sheet_converter_main
 from .core.png_resize import main as png_resize_main
 
-S4C_CLI_VERSION = "0.1.2"
+S4C_CLI_VERSION = "0.1.3"
 
-EXPECTED_S4C_ANIMATE_V = "0.4.2"
+EXPECTED_S4C_ANIMATE_V = "0.4.8"
 
 subcoms = ["cut_sheet", "palette", "sprites", "sheet_converter", "png_resize", "help", "version"]
 f_prog_str = f"{os.path.basename(__file__)}"
