@@ -37,8 +37,8 @@ from .utils import convert_mode_lit
 
 ## The file format version.
 FILE_VERSION = "0.2.2"
-SCRIPT_VERSION = "0.1.1"
-F_STRING_ARGS = "<mode> <palette> <s4c path>"
+SCRIPT_VERSION = "0.1.2"
+F_STRING_ARGS = "[--cfile-no-include] <mode> <palette> <s4c path>"
 
 # Expects the palette name as first argument, output directory as second argument.
 
@@ -51,7 +51,7 @@ def usage():
     sys.exit(1)
 
 
-def convert_palette(mode, palette_path, s4c_path):
+def convert_palette(mode, palette_path, s4c_path, *args):
     """! Takes a mode and a palette file, plus the path to s4c dir (for includes) and prints C code.
     @param mode The mode of operation
     @param palette_path   The path to palette file
@@ -116,15 +116,14 @@ def convert_palette(mode, palette_path, s4c_path):
         print(f" * Declares S4C_Color array for {target_name}.")
         print(" */")
         print(f"extern S4C_Color {target_name}[{read_colors+1}];")
-        print("\n#endif")
-        sys.exit(0)
+        print(f"\n#endif // {target_name.upper()}_S4C_H_")
     if mode == "cfile":
-        print(f"#include \"{target_name}.h\"\n")
+        if len(args) > 0 and args[0] == False:
+            print(f"#include \"{target_name}.h\"\n")
         print(f"S4C_Color {target_name}[{read_colors+1}] = {{")
         for color in colors:
             print(f"    {{ {color[0]}, {color[1]}, {color[2]}, \"{color[3]}\" }},")
         print("};")
-        sys.exit(0)
 
 
 def main(argv):
@@ -134,6 +133,16 @@ def main(argv):
             print(f"palette v{SCRIPT_VERSION}")
             print(f"FILE_VERSION v{FILE_VERSION}")
             sys.exit(0)
+        if (len(argv) == 5 and argv[1] in ('--cfile-no-include')):
+            if argv[2] != 'C-impl':
+                print("Wrong arguments. Can't use --cfile-no-include with C-impl mode")
+                usage()
+            mode = 'cfile'
+            cfile_no_include = True
+            palette_path = argv[3]
+            s4c_path = argv[4]
+            convert_palette(mode,palette_path,s4c_path, cfile_no_include)
+            return
         print(f"Wrong number of arguments. Expected 3, got {len(argv)-1}.")
         print(f"--> {argv[1:]}\n")
         usage()

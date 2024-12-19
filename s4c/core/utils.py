@@ -48,8 +48,12 @@ def convert_mode_lit(mode):
         return "s4c"
     if mode == "C-header":
         return "header"
+    if mode == "C-header-exp":
+        return "header-exp"
     if mode == "C-impl":
         return "cfile"
+    if mode == "C-impl-exp":
+        return "cfile-exp"
     print("Error: wrong mode request")
     print(f"--> Found: {mode}")
     print("--> Expected: \'C-impl\' | \'C-header\' | \'s4c-file\'\n")
