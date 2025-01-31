@@ -65,7 +65,7 @@ def usage():
     print("\n  mode:  \n\ts4c-file\n\tC-header\n\tC-impl")
     sys.exit(1)
 
-def convert_sprite(file,chars):
+def convert_sprite(file):
     """! Takes a image and converts each pixel to a char for its color (closest match to char_map).
 
     @param file   The image file to convert.
@@ -90,6 +90,7 @@ def convert_sprite(file,chars):
 
     # Convert each pixel to its corresponding character representation
     r, g, b = 0, 0, 0
+    chars = []
     for y in range(img.size[1]): #Height
         line = ""
         for x in range(img.size[0]): #Width
@@ -136,13 +137,12 @@ def print_converted_sprites(mode, direc, *args):
                       key=lambda f:
                       int(re.search(r'\d+', f).group()))):
         # convert a sprite and print the result
-        chars = []
         (conv_chars, frame_width, frame_height, rbg_palette,
-         palette_size) = convert_sprite(file,chars)
+         palette_size) = convert_sprite(file)
         if idx == 0:
             target_palette = rbg_palette
             target_sprites.append([conv_chars, frame_width, frame_height,
-                               rbg_palette, palette_size, chars])
+                               rbg_palette, palette_size])
         else:
             if rbg_palette != target_palette: #Must have same palette as first sprite
                 print(f"\n\n[ERROR] at file #{idx}: {file}: palette mismatch\n")
@@ -151,12 +151,16 @@ def print_converted_sprites(mode, direc, *args):
                 print("You must have all frames using the same palette.\n")
                 return False
             target_sprites.append([conv_chars, frame_width, frame_height,
-                               rbg_palette, palette_size, chars])
+                               rbg_palette, palette_size])
 
     # Start file output, beginning with version number
 
-    if print_heading(mode, target_name, FILE_VERSION, (frames, target_sprites[0][4]), args[0]):
-        return True
+    if len(args) == 0:
+        callargs = ("NONE")
+    else:
+        callargs = args
+        if print_heading(mode, target_name, FILE_VERSION, (frames, target_sprites[0][4]), callargs[0]):
+            return True
     print_impl_ending(mode, target_name, frames, target_sprites)
     return True
 

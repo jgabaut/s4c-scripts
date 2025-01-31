@@ -134,7 +134,7 @@ def print_impl_ending(mode, target_name, num_frames, target_sprites):
     @param target_name The name for the target
     @param num_frames The number of frames
     @param target_sprites Array matrix: [conv_chars, frame_width, frame_height,
-                               rgb_palette, palette_size, chars]
+                               rgb_palette, palette_size]
     """
     target_name.replace("-","_")
     if mode == "cfile":
@@ -158,12 +158,12 @@ def print_impl_ending(mode, target_name, num_frames, target_sprites):
         print(f"\t//Frame {idx}")
         if mode == "cfile":
             print("\t{")
-            for row in target[5]:
+            for row in target[0]:
                 print("\t\t\""+row+"\",")
         elif mode == "cfile-exp":
             print("\t(S4C_Sprite) {")
             print("\t\t.data = {")
-            for row in target[5]:
+            for row in target[0]:
                 print("\t\t\t{ \""+row+"\" },")
             print("\t\t},")
             print(f"\t\t.frame_height = {target[2]},")
