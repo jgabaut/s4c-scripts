@@ -51,14 +51,14 @@ SCRIPT_VERSION="0.1.0"
 F_ARG_OUTD = "<output_directory>"
 F_ARG_SW = "<sprite_width>"
 F_ARG_SH = "<sprite_height>"
-f_string_args = f"<sheet_file> {F_ARG_OUTD} {F_ARG_SW} {F_ARG_SH} <sep_size> <start_x> <start_y>"
+F_STRING_ARGS = f"<sheet_file> {F_ARG_OUTD} {F_ARG_SW} {F_ARG_SH} <sep_size> <start_x> <start_y>"
 EXPECTED_ARGS = 7
 
 # Functions
 def usage():
     """! Prints correct invocation."""
     print("Wrong arguments.")
-    print(f"\nUsage:\tpython {os.path.basename(__file__)} {f_string_args}")
+    print(f"\nUsage:\tpython {os.path.basename(__file__)} {F_STRING_ARGS}")
 
 
 def cut_spritesheet(filename, output_dir, s: SheetArgs):

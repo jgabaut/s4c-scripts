@@ -118,7 +118,7 @@ def convert_palette(mode, palette_path, s4c_path, *args):
         print(f"extern S4C_Color {target_name}[{read_colors+1}];")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
     if mode == "cfile":
-        if len(args) > 0 and args[0] == False:
+        if len(args) > 0 and args[0] is False:
             print(f"#include \"{target_name}.h\"\n")
         print(f"S4C_Color {target_name}[{read_colors+1}] = {{")
         for color in colors:

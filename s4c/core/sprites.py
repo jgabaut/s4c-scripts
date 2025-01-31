@@ -39,14 +39,12 @@ import sys
 import glob
 import re
 import os
-import io
 from PIL import Image
 from .utils import convert_mode_lit
 from .utils import print_animation_header
 from .utils import get_converted_char
 from .utils import new_char_map
 from .utils import log_wrong_argnum
-from .palette import main as palette_main
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
@@ -60,7 +58,9 @@ EXPECTED_ARGS = 2
 def usage():
     """! Prints correct invocation."""
     print("Wrong arguments. Needed: mode, sprites directory")
-    print(f"\nUsage:\tpython {os.path.basename(__file__)} [--palette <palette_path> --s4c_path <s4c_path>] <mode> <sprites_directory>")
+    print(f"\nUsage:\tpython {os.path.basename(__file__)}\
+ [--s4c_path <s4c_path>]\
+ <mode> <sprites_directory>")
     print("\n  mode:  \n\ts4c-file\n\tC-header\n\tC-impl")
     sys.exit(1)
 
@@ -69,7 +69,7 @@ def convert_sprite(file,chars):
 
     @param file   The image file to convert.
 
-    @return  A tuple of : the converted sprite as a char matrix, the sprite width, the sprite height, the rbg palette used, the palette size.
+    @return  A tuple of : char matrix, width, height, rbg palette, palette size.
     """
     img = Image.open(file)
 
@@ -89,11 +89,9 @@ def convert_sprite(file,chars):
 
     # Convert each pixel to its corresponding character representation
     r, g, b = 0, 0, 0
-    img_width = img.size[0]
-    img_height = img.size[1]
-    for y in range(img_height):
+    for y in range(img.size[1]): #Height
         line = ""
-        for x in range(img_width):
+        for x in range(img.size[0]): #Width
             color_index = img.getpixel((x, y))
             r, g, b = rgb_palette[color_index]
             char = get_converted_char(char_map, r, g, b)
@@ -101,7 +99,21 @@ def convert_sprite(file,chars):
 
         chars.append(line)
 
-    return (chars, img_width, img_height, rgb_palette, palette_size)
+    return (chars, img.size[0], img.size[1], rgb_palette, palette_size)
+
+def print_palette_as_s4c_color_array(rgb_palette, palette_name):
+    """! Takes an rgb palette (r,g,b), and a name for the palette.
+    Replaces dashes in palette_name with underscores.
+    Outputs the palette to stdout, with the needed brackets for a valid C array decl.
+    @param rgb_palette   The rgb palette to print
+    @param palette_name The name for the palette
+    """
+    palette_name.replace("-","_")
+
+    for color_idx, color in enumerate(rgb_palette):
+        color_name = f"{color_idx}_COLOR_{palette_name}"
+        print(f"\t\t\t(S4C_Color){{ .name = \"{color_name[:50]}\",\
+                .r = {color[0]}, .g = {color[1]}, .b = {color[2]} }},")
 
 def print_converted_sprites(mode, direc, *args):
     """! Takes a mode (s4c, header, cfile) and a dir with images, calls convert_sprite on each one.
@@ -115,11 +127,8 @@ def print_converted_sprites(mode, direc, *args):
     if mode not in ('s4c', 'header', 'cfile', 'header-exp', 'cfile-exp') :
         print(f"Unexpected mode value in print_converted_sprites: {mode}")
         usage()
-    if mode in ('header-exp', 'cfile-exp') and len(args) < 2:
-        if len(args) == 1:
-            print(f"Missing s4c_path in print_converted_sprits: {mode}")
-        else:
-            print(f"Missing palette_path, s4c_path in print_converted_sprits: {mode}")
+    if mode in ('header-exp', 'cfile-exp') and len(args) < 1:
+        print(f"Missing s4c_path in print_converted_sprits: {mode}")
         usage()
     # We start the count from one so we account for one more cell for array declaration
     frames = 1
@@ -136,45 +145,39 @@ def print_converted_sprites(mode, direc, *args):
 
     # Start file output, beginning with version number
 
-    if mode == "s4c" :
-        print(f"{FILE_VERSION}")
-    elif mode == "header":
-        print_animation_header(target_name, FILE_VERSION)
-        #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
-        print(f"extern char {target_name}[{frames}][MAXROWS][MAXCOLS];")
-        print(f"\n#endif // {target_name.upper()}_S4C_H_")
-        return
-    elif mode == "header-exp":
-        print_animation_header(target_name, FILE_VERSION)
-        print(f"extern S4C_Sprite {target_name}[{frames}];")
-        print("\n/**")
-        print(f" * Declares palette for {target_name}.")
-        print(" */")
-        palette_path = args[0]
-        s4c_path = args[1]
-        palette_main(["sprites.py", "C-header", palette_path, s4c_path])
-        print(f"\n#endif // {target_name.upper()}_S4C_H_")
-        return
-    elif mode == "cfile" or mode == "cfile-exp":
-        print(f"#include \"{target_name}.h\"\n")
+    match mode:
+        case "s4c":
+            print(f"{FILE_VERSION}")
+        case "header":
+            print_animation_header(target_name, FILE_VERSION)
+            #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
+            print(f"extern char {target_name}[{frames}][MAXROWS][MAXCOLS];")
+            print(f"\n#endif // {target_name.upper()}_S4C_H_")
+            return
+        case "header-exp":
+            print_animation_header(target_name, FILE_VERSION)
+            #s4c_path = args[0]
+            print(f"extern S4C_Sprite {target_name}[{frames}];\n")
+            print(f"#include \"{args[0]}/sprites4curses/src/s4c.h\"\n")
+            print(f"\n#endif // {target_name.upper()}_S4C_H_")
+            return
+        case ('cfile', 'cfile-exp'):
+            print(f"#include \"{target_name}.h\"\n")
 
     if mode == "cfile":
         #print("char {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
         print(f"char {target_name}[{frames}][MAXROWS][MAXCOLS] = ", "{\n")
     elif mode == "cfile-exp":
-
-        palette_path = args[0]
-        s4c_path = args[1]
-        palette_main(["sprites.py", "--cfile-no-include", "C-impl", palette_path, s4c_path])
+        #s4c_path = args[0]
         print(f"\nS4C_Sprite {target_name}[{frames}] = ", "{\n")
 
-    idx = 1
-    for file in sorted(glob.glob(f"{direc}/*.png"),
+    for idx, file in enumerate(sorted(glob.glob(f"{direc}/*.png"),
                       key=lambda f:
-                      int(re.search(r'\d+', f).group())):
+                      int(re.search(r'\d+', f).group()))):
         # convert a sprite and print the result
         chars = []
-        (conv_chars, frame_width, frame_height, rbg_palette, palette_size) = convert_sprite(file,chars)
+        (_conv_chars, frame_width, frame_height, rbg_palette,
+         palette_size) = convert_sprite(file,chars)
         print(f"\t//Frame {idx}")
         if mode == "cfile":
             print("\t{")
@@ -188,14 +191,9 @@ def print_converted_sprites(mode, direc, *args):
             print("\t\t},")
             print(f"\t\t.frame_height = {frame_height},")
             print(f"\t\t.frame_width = {frame_width},")
-
-            palette_path = args[0]
-            palette_name = os.path.splitext(
-                os.path.basename(
-                    os.path.normpath(palette_path))
-            )[0].replace("-","_")
-
-            print(f"\t\t.palette = &{palette_name},") #TODO: build the palette
+            print("\t\t.palette = {")
+            print_palette_as_s4c_color_array(rbg_palette, target_name)
+            print("\t\t}")
             print(f"\t\t.palette_size = {palette_size},")
         print("\t},"+ "\n")
         idx += 1
@@ -210,16 +208,12 @@ def main(argv):
             print(f"sprites v{SCRIPT_VERSION}")
             print(f"FILE_VERSION v{FILE_VERSION}")
             sys.exit(0)
-        elif (len(argv) == 7 and argv[1] in ('--palette')):
-            if argv[3] != "--s4c_path":
-                print(f"Wrong arguments. Expecting --s4c_path, found: {argv[3]}")
-                usage()
-            palette_path = argv[2]
-            s4c_path = argv[4]
-            mode = argv[5]
+        elif len(argv) == 5:
+            s4c_path = argv[2]
+            mode = argv[3]
             mode = convert_mode_lit(mode)
-            directory = argv[6]
-            print_converted_sprites(mode,directory,palette_path, s4c_path)
+            directory = argv[4]
+            print_converted_sprites(mode,directory,s4c_path)
             sys.exit(0)
         log_wrong_argnum(EXPECTED_ARGS,argv)
         usage()

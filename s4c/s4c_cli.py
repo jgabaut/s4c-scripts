@@ -47,11 +47,11 @@ S4C_CLI_VERSION = "0.1.3"
 EXPECTED_S4C_ANIMATE_V = "0.4.8"
 
 subcoms = ["cut_sheet", "palette", "sprites", "sheet_converter", "png_resize", "help", "version"]
-f_prog_str = f"{os.path.basename(__file__)}"
-f_usage_str = f"\nUsage:\tpython {f_prog_str} <subcommand>"
-f_string_s4c_cli_v = f"s4c-cli v{S4C_CLI_VERSION}"
-f_string_s4c_anim = f"s4c-animate v{EXPECTED_S4C_ANIMATE_V}"
-f_string_s4c_cmpt = f"Compatible with {f_string_s4c_anim}"
+F_PROG_STR = f"{os.path.basename(__file__)}"
+F_USAGE_STR = f"\nUsage:\tpython {F_PROG_STR} <subcommand>"
+F_STRING_S4C_CLI_V = f"s4c-cli v{S4C_CLI_VERSION}"
+F_STRING_S4C_ANIM = f"s4c-animate v{EXPECTED_S4C_ANIMATE_V}"
+F_STRING_S4C_CMPT = f"Compatible with {F_STRING_S4C_ANIM}"
 
 def print_subcommands():
     """! Prints available subcommands."""
@@ -61,7 +61,7 @@ def print_subcommands():
 def usage():
     """! Prints correct invocation."""
     print("Wrong arguments.")
-    print(f_usage_str)
+    print(F_USAGE_STR)
     print_subcommands()
 
 def run_subcommand(query,args):
@@ -90,8 +90,8 @@ def main(argv=sys.argv):
         subcommand = argv[1]
         sub_args = []
         if subcommand.lower() in ('version', '-v', '--version'):
-            print(f_string_s4c_cli_v)
-            print(f_string_s4c_cmpt)
+            print(F_STRING_S4C_CLI_V)
+            print(F_STRING_S4C_CMPT)
             sys.exit(0)
         elif subcommand.lower() in ('help', '-h', '--help'):
             print_subcommands()
