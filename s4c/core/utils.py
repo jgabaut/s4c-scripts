@@ -60,7 +60,7 @@ def convert_mode_lit(mode):
     return "INVALID"
 
 def print_animation_header(target_name, file_version):
-    """! Print the beginning of s4c header for a target."""
+    """! Print the beginning of animation header for a target."""
     print(f"#ifndef {target_name.upper()}_S4C_H_")
     print(f"#define {target_name.upper()}_S4C_H_")
     print(f"#define {target_name.upper()}_S4C_H_VERSION \"{file_version}\"")
@@ -69,8 +69,20 @@ def print_animation_header(target_name, file_version):
     print(f" * Declares animation matrix vector for {target_name}.")
     print(" */")
 
+def print_wrapped_s4c_inclusion(s4c_path):
+    """! Print the wrapped s4c.h inclusion."""
+    print("#ifndef S4C_HAS_ANIMATE")
+    print("#define S4C_SCRIPTS_PALETTE_ANIMATE_CLEANUP")
+    print("#define S4C_HAS_ANIMATE")
+    print("#endif //!S4C_HAS_ANIMATE")
+    print(f"#include \"{s4c_path}/sprites4curses/src/s4c.h\"")
+    print("#ifdef PALETTE_ANIMATE_CLEANUP")
+    print("#undef S4C_HAS_ANIMATE")
+    print("#undef S4C_SCRIPTS_PALETTE_ANIMATE_CLEANUP")
+    print("#endif //PALETTE_ANIMATE_CLEANUP\n")
+
 def print_heading(mode, target_name, file_version, num_frames, s4c_path):
-    """! Print the actual s4c header for a target."""
+    """! Print the actual header for a target."""
     if mode == "s4c":
         print(f"{file_version}")
     elif mode == "header":
@@ -82,8 +94,8 @@ def print_heading(mode, target_name, file_version, num_frames, s4c_path):
     elif mode == "header-exp":
         print_animation_header(target_name, file_version)
         #s4c_path = args[0]
+        print_wrapped_s4c_inclusion(s4c_path)
         print(f"extern S4C_Sprite {target_name}[{num_frames}];\n")
-        print(f"#include \"{s4c_path}/sprites4curses/src/s4c.h\"\n")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
         return True
     elif mode in ('cfile', 'cfile-exp'):

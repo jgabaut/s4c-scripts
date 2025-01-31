@@ -34,10 +34,11 @@
 import sys
 import os
 from .utils import convert_mode_lit
+from .utils import print_wrapped_s4c_inclusion
 
 ## The file format version.
-FILE_VERSION = "0.2.2"
-SCRIPT_VERSION = "0.1.2"
+FILE_VERSION = "0.2.3"
+SCRIPT_VERSION = "0.1.3"
 F_STRING_ARGS = "[--cfile-no-include] <mode> <palette> <s4c path>"
 
 # Expects the palette name as first argument, output directory as second argument.
@@ -108,8 +109,8 @@ def convert_palette(mode, palette_path, s4c_path, *args):
 
     if mode == "header":
         print(f"#ifndef {target_name.upper()}_S4C_H_")
-        print(f"#define {target_name.upper()}_S4C_H_")
-        print(f"#include \"{s4c_path}/sprites4curses/src/s4c.h\"\n")
+        print(f"#define {target_name.upper()}_S4C_H_\n")
+        print_wrapped_s4c_inclusion(s4c_path)
         print(f"#define {target_name.upper()}_S4C_H_VERSION \"{FILE_VERSION}\"")
         print(f"#define {target_name.upper()}_S4C_H_TOTCOLORS {read_colors}")
         print("\n/**")
