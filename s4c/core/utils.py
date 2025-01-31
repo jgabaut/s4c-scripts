@@ -81,8 +81,10 @@ def print_wrapped_s4c_inclusion(s4c_path):
     print("#undef S4C_SCRIPTS_PALETTE_ANIMATE_CLEANUP")
     print("#endif //PALETTE_ANIMATE_CLEANUP\n")
 
-def print_heading(mode, target_name, file_version, num_frames, s4c_path):
+def print_heading(mode, target_name, file_version, num_frames_and_colors, s4c_path):
     """! Print the actual header for a target."""
+    num_frames = num_frames_and_colors[0]
+    num_colors = num_frames_and_colors[1]
     if mode == "s4c":
         print(f"{file_version}")
     elif mode == "header":
@@ -95,12 +97,71 @@ def print_heading(mode, target_name, file_version, num_frames, s4c_path):
         print_animation_header(target_name, file_version)
         #s4c_path = args[0]
         print_wrapped_s4c_inclusion(s4c_path)
+        print(f"#define {target_name.upper()}_TOT_COLORS {num_colors}")
         print(f"extern S4C_Sprite {target_name}[{num_frames}];\n")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
         return True
     elif mode in ('cfile', 'cfile-exp'):
         print(f"#include \"{target_name}.h\"\n")
     return False
+
+def print_palette_as_s4c_color_array(rgb_palette, palette_name):
+    """! Takes an rgb palette (r,g,b), and a name for the palette.
+    Replaces dashes in palette_name with underscores.
+    Outputs the palette to stdout, with the needed brackets for a valid C array decl.
+    @param rgb_palette   The rgb palette to print
+    @param palette_name The name for the palette
+    """
+    palette_name.replace("-","_")
+
+    for color_idx, color in enumerate(rgb_palette):
+        color_name = f"{color_idx}_COLOR_{palette_name}"
+        print(f"\t(S4C_Color){{\n\t\t.name = \"{color_name[:50]}\",")
+        print(f"\t\t.r = {color[0]},\n\t\t.g = {color[1]},\n\t\t.b = {color[2]}\n\t}},")
+
+def print_impl_ending(mode, target_name, num_frames, target_sprites):
+    """! Print the actual impl ending for a target.
+    Replaces dashes in target_name with underscores.
+    @param mode The impl mode
+    @param target_name The name for the target
+    @param num_frames The number of frames
+    @param target_sprites Array matrix: [conv_chars, frame_width, frame_height,
+                               rgb_palette, palette_size, chars]
+    """
+    target_name.replace("-","_")
+    if mode == "cfile":
+        #print("char {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
+        print(f"char {target_name}[{num_frames}][MAXROWS][MAXCOLS] = ", "{\n")
+    elif mode == "cfile-exp":
+        #s4c_path = args[0]
+        #Using the first sprite's palette since they must be all equal
+        print(f"\nS4C_Color {target_name}_palette[{target_name.upper()}_TOT_COLORS+1] = {{")
+        print_palette_as_s4c_color_array(target_sprites[0][3], target_name)
+        print("}}\n")
+        print(f"\nS4C_Sprite {target_name}[{num_frames}] = ", "{\n")
+
+    for idx, target in enumerate(target_sprites):
+        print(f"\t//Frame {idx}")
+        if mode == "cfile":
+            print("\t{")
+            for row in target[5]:
+                print("\t\t\""+row+"\",")
+        elif mode == "cfile-exp":
+            print("\t(S4C_Sprite) {")
+            print("\t\t.data = {")
+            for row in target[5]:
+                print("\t\t\t{ \""+row+"\" },")
+            print("\t\t},")
+            print(f"\t\t.frame_height = {target[2]},")
+            print(f"\t\t.frame_width = {target[1]},")
+            print(f"\t\t.palette = &{target_name}_palette,")
+
+            #Instead of accurately using the sprite's palette size, we use the defined macro
+            # since we expect them to be the same
+            #print(f"\t\t.palette_size = {target[4]},")
+            print(f"\t\t.palette_size = {target_name.upper()}_TOT_COLORS,")
+        print("\t},"+ "\n")
+    print("};")
 
 def get_converted_char(char_map, r, g, b):
     """"! Returns a char looking up char_map, for passed color."""

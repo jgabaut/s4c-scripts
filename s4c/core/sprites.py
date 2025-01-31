@@ -42,6 +42,7 @@ import os
 from PIL import Image
 from .utils import convert_mode_lit
 from .utils import print_heading
+from .utils import print_impl_ending
 from .utils import get_converted_char
 from .utils import new_char_map
 from .utils import log_wrong_argnum
@@ -101,20 +102,6 @@ def convert_sprite(file,chars):
 
     return (chars, img.size[0], img.size[1], rgb_palette, palette_size)
 
-def print_palette_as_s4c_color_array(rgb_palette, palette_name):
-    """! Takes an rgb palette (r,g,b), and a name for the palette.
-    Replaces dashes in palette_name with underscores.
-    Outputs the palette to stdout, with the needed brackets for a valid C array decl.
-    @param rgb_palette   The rgb palette to print
-    @param palette_name The name for the palette
-    """
-    palette_name.replace("-","_")
-
-    for color_idx, color in enumerate(rgb_palette):
-        color_name = f"{color_idx}_COLOR_{palette_name}"
-        print(f"\t\t\t(S4C_Color){{ .name = \"{color_name[:50]}\",\
-                .r = {color[0]}, .g = {color[1]}, .b = {color[2]} }},")
-
 def print_converted_sprites(mode, direc, *args):
     """! Takes a mode (s4c, header, cfile) and a dir with images, calls convert_sprite on each one.
     Outputs the converted sprites to stdout, with the needed brackets for a valid C array decl.
@@ -143,46 +130,35 @@ def print_converted_sprites(mode, direc, *args):
             #ysize = ref_img.size[1]+1
         frames += 1
 
-    # Start file output, beginning with version number
-
-    if print_heading(mode, target_name, FILE_VERSION, frames, args[0]):
-        return
-
-    if mode == "cfile":
-        #print("char {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
-        print(f"char {target_name}[{frames}][MAXROWS][MAXCOLS] = ", "{\n")
-    elif mode == "cfile-exp":
-        #s4c_path = args[0]
-        print(f"\nS4C_Sprite {target_name}[{frames}] = ", "{\n")
-
+    target_sprites = []
+    target_palette = (0,0,0)
     for idx, file in enumerate(sorted(glob.glob(f"{direc}/*.png"),
                       key=lambda f:
                       int(re.search(r'\d+', f).group()))):
         # convert a sprite and print the result
         chars = []
-        (_conv_chars, frame_width, frame_height, rbg_palette,
+        (conv_chars, frame_width, frame_height, rbg_palette,
          palette_size) = convert_sprite(file,chars)
-        print(f"\t//Frame {idx}")
-        if mode == "cfile":
-            print("\t{")
-            for row in chars:
-                print("\t\t\""+row+"\",")
-        elif mode == "cfile-exp":
-            print("\t(S4C_Sprite) {")
-            print("\t\t.data = {")
-            for row in chars:
-                print("\t\t\t{ \""+row+"\" },")
-            print("\t\t},")
-            print(f"\t\t.frame_height = {frame_height},")
-            print(f"\t\t.frame_width = {frame_width},")
-            print("\t\t.palette = {")
-            print_palette_as_s4c_color_array(rbg_palette, target_name)
-            print("\t\t}")
-            print(f"\t\t.palette_size = {palette_size},")
-        print("\t},"+ "\n")
-        idx += 1
-    print("};")
-    return
+        if idx == 0:
+            target_palette = rbg_palette
+            target_sprites.append([conv_chars, frame_width, frame_height,
+                               rbg_palette, palette_size, chars])
+        else:
+            if rbg_palette != target_palette: #Must have same palette as first sprite
+                print(f"\n\n[ERROR] at file #{idx}: {file}: palette mismatch\n")
+                print(f"\texpected: {target_palette}")
+                print(f"\tfound: {rbg_palette}\n")
+                print("You must have all frames using the same palette.\n")
+                return False
+            target_sprites.append([conv_chars, frame_width, frame_height,
+                               rbg_palette, palette_size, chars])
+
+    # Start file output, beginning with version number
+
+    if print_heading(mode, target_name, FILE_VERSION, (frames, target_sprites[0][4]), args[0]):
+        return True
+    print_impl_ending(mode, target_name, frames, target_sprites)
+    return True
 
 
 def main(argv):
