@@ -90,15 +90,23 @@ def print_heading(mode, target_name, file_version, num_frames_and_colors, s4c_pa
     elif mode == "header":
         print_animation_header(target_name, file_version)
         #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
-        print(f"extern char {target_name}[{num_frames}][MAXROWS][MAXCOLS];")
+        print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames-1}")
+        #Instead of accurately using the sprite's num of frames, we use the defined macro
+        # since we expect them to be the same
+        #print(f"extern char {target_name}[{num_frames}][MAXROWS][MAXCOLS];")
+        print(f"extern char {target_name}[{target_name.upper()}_TOT_FRAMES+1][MAXROWS][MAXCOLS];\n")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
         return True
     elif mode == "header-exp":
         print_animation_header(target_name, file_version)
         #s4c_path = args[0]
         print_wrapped_s4c_inclusion(s4c_path)
+        print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames-1}")
         print(f"#define {target_name.upper()}_TOT_COLORS {num_colors}")
-        print(f"extern S4C_Sprite {target_name}[{num_frames}];\n")
+        #Instead of accurately using the sprite's num of frames, we use the defined macro
+        # since we expect them to be the same
+        #print(f"extern S4C_Sprite {target_name}[{num_frames}];\n")
+        print(f"extern S4C_Sprite {target_name}[{target_name.upper()}_TOT_FRAMES+1];\n")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
         return True
     elif mode in ('cfile', 'cfile-exp'):
@@ -131,14 +139,20 @@ def print_impl_ending(mode, target_name, num_frames, target_sprites):
     target_name.replace("-","_")
     if mode == "cfile":
         #print("char {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
-        print(f"char {target_name}[{num_frames}][MAXROWS][MAXCOLS] = ", "{\n")
+        #Instead of accurately using the sprite's num of frames, we use the defined macro
+        # since we expect them to be the same
+        #print(f"char {target_name}[{num_frames}][MAXROWS][MAXCOLS] = ", "{\n")
+        print(f"char {target_name}[{target_name.upper()}_TOT_FRAMES+1][MAXROWS][MAXCOLS] = ", "{\n")
     elif mode == "cfile-exp":
         #s4c_path = args[0]
         #Using the first sprite's palette since they must be all equal
         print(f"\nS4C_Color {target_name}_palette[{target_name.upper()}_TOT_COLORS+1] = {{")
         print_palette_as_s4c_color_array(target_sprites[0][3], target_name)
         print("}}\n")
-        print(f"\nS4C_Sprite {target_name}[{num_frames}] = ", "{\n")
+        #Instead of accurately using the sprite's num of frames, we use the defined macro
+        # since we expect them to be the same
+        #print(f"\nS4C_Sprite {target_name}[{num_frames}] = ", "{\n")
+        print(f"\nS4C_Sprite {target_name}[{target_name.upper()}_TOT_FRAMES+1] = ", "{\n")
 
     for idx, target in enumerate(target_sprites):
         print(f"\t//Frame {idx}")
