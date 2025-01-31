@@ -102,7 +102,7 @@ def print_heading(mode, target_name, file_version, num_frames_and_colors, s4c_pa
         #s4c_path = args[0]
         print_wrapped_s4c_inclusion(s4c_path)
         print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames-1}")
-        print(f"#define {target_name.upper()}_TOT_COLORS {num_colors}")
+        print(f"#define {target_name.upper()}_TOT_COLORS {num_colors-1}")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
         #print(f"extern S4C_Sprite {target_name}[{num_frames}];\n")
