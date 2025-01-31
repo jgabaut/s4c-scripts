@@ -28,7 +28,7 @@
 #
 # @section author_palette Author(s)
 # - Created by jgabaut on 01/09/2023.
-# - Modified by jgabaut on 29/08/2024.
+# - Modified by jgabaut on 31/01/2025.
 
 # Imports
 import sys

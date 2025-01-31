@@ -32,7 +32,7 @@
 #
 # @section author_s4c_cli Author(s)
 # - Created by jgabaut on 02/01/2024.
-# - Modified by jgabaut on 17/01/2024.
+# - Modified by jgabaut on 31/01/2025.
 
 import sys
 import os

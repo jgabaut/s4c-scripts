@@ -36,7 +36,7 @@
 #
 # @section author_cut_spritesheet Author(s)
 # - Created by jgabaut on 17/04/2023.
-# - Modified by jgabaut on 19/01/2024.
+# - Modified by jgabaut on 31/01/2025.
 
 # Imports
 import sys

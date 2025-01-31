@@ -32,7 +32,7 @@
 #
 # @section author_sprites Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 19/01/2024.
+# - Modified by jgabaut on 31/01/2025.
 
 # Imports
 import sys
