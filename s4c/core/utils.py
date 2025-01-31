@@ -60,7 +60,7 @@ def convert_mode_lit(mode):
     return "INVALID"
 
 def print_animation_header(target_name, file_version):
-    """! Print the s4c hader for a target."""
+    """! Print the beginning of s4c header for a target."""
     print(f"#ifndef {target_name.upper()}_S4C_H_")
     print(f"#define {target_name.upper()}_S4C_H_")
     print(f"#define {target_name.upper()}_S4C_H_VERSION \"{file_version}\"")
@@ -68,6 +68,27 @@ def print_animation_header(target_name, file_version):
     print("/**")
     print(f" * Declares animation matrix vector for {target_name}.")
     print(" */")
+
+def print_heading(mode, target_name, file_version, num_frames, s4c_path):
+    """! Print the actual s4c header for a target."""
+    if mode == "s4c":
+        print(f"{file_version}")
+    elif mode == "header":
+        print_animation_header(target_name, file_version)
+        #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
+        print(f"extern char {target_name}[{num_frames}][MAXROWS][MAXCOLS];")
+        print(f"\n#endif // {target_name.upper()}_S4C_H_")
+        return True
+    elif mode == "header-exp":
+        print_animation_header(target_name, file_version)
+        #s4c_path = args[0]
+        print(f"extern S4C_Sprite {target_name}[{num_frames}];\n")
+        print(f"#include \"{s4c_path}/sprites4curses/src/s4c.h\"\n")
+        print(f"\n#endif // {target_name.upper()}_S4C_H_")
+        return True
+    elif mode in ('cfile', 'cfile-exp'):
+        print(f"#include \"{target_name}.h\"\n")
+    return False
 
 def get_converted_char(char_map, r, g, b):
     """"! Returns a char looking up char_map, for passed color."""

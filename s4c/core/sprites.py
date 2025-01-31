@@ -41,7 +41,7 @@ import re
 import os
 from PIL import Image
 from .utils import convert_mode_lit
-from .utils import print_animation_header
+from .utils import print_heading
 from .utils import get_converted_char
 from .utils import new_char_map
 from .utils import log_wrong_argnum
@@ -145,24 +145,8 @@ def print_converted_sprites(mode, direc, *args):
 
     # Start file output, beginning with version number
 
-    match mode:
-        case "s4c":
-            print(f"{FILE_VERSION}")
-        case "header":
-            print_animation_header(target_name, FILE_VERSION)
-            #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
-            print(f"extern char {target_name}[{frames}][MAXROWS][MAXCOLS];")
-            print(f"\n#endif // {target_name.upper()}_S4C_H_")
-            return
-        case "header-exp":
-            print_animation_header(target_name, FILE_VERSION)
-            #s4c_path = args[0]
-            print(f"extern S4C_Sprite {target_name}[{frames}];\n")
-            print(f"#include \"{args[0]}/sprites4curses/src/s4c.h\"\n")
-            print(f"\n#endif // {target_name.upper()}_S4C_H_")
-            return
-        case ('cfile', 'cfile-exp'):
-            print(f"#include \"{target_name}.h\"\n")
+    if print_heading(mode, target_name, FILE_VERSION, frames, args[0]):
+        return
 
     if mode == "cfile":
         #print("char {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
