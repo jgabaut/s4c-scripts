@@ -42,7 +42,6 @@ import sys
 import os
 from PIL import Image
 from .utils import convert_mode_lit
-from .utils import print_animation_header
 from .utils import print_heading
 from .utils import print_impl_ending
 from .utils import get_converted_char
@@ -70,31 +69,6 @@ def usage():
     print(f"\nUsage:\tpython {os.path.basename(__file__)} [--s4c_path <s4c_path] {F_STR_ARGS}")
     print("\n    mode:\n\t  s4c-file\n\t  C-header\n\t  C-impl")
     sys.exit(1)
-
-def print_sprites(mode, sprites, target_name):
-    """! Prints the wanted mode output for passed sprites array."""
-    if mode == "s4c" :
-        print(f"{FILE_VERSION}")
-    elif mode == "header":
-        print_animation_header(target_name, FILE_VERSION)
-        #print(f"extern char {target_name}[{len(sprites)+1}][{sprite_h+1}][{sprite_w+1}];")
-        print(f"extern char {target_name}[{len(sprites)+1}][MAXROWS][MAXCOLS];")
-        print("\n#endif")
-        return
-    elif mode == "cfile":
-        print(f"#include \"{target_name}.h\"\n")
-
-    #print(f"char {target_name}[{len(sprites)+1}][{sprite_h+1}][{sprite_w+1}] = ", "{\n")
-    print("char {target_name}[{len(sprites)+1}][MAXROWS][MAXCOLS] = ", "{\n")
-    for i, sprite in enumerate(sprites):
-        print(f"\t//Sprite {i+1}, index {i}")
-        print("\t{")
-        for row in sprite:
-            print("\t\t\"" + row + "\",")
-        print("\t}," + "\n")
-    print("};")
-    return
-
 
 def parse_sprite(sprite, rgb_palette, char_map):
     """! Parse sprite using the palette and charmap, returns char array."""
@@ -167,7 +141,6 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
                 target_sprites.append([chars, sprite.size[0], sprite.size[1],
                                    rgb_palette, len(rgb_palette)])
 
-    #print_sprites(mode, sprites, target_name)
     if len(args) == 0:
         if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
                                                            target_sprites[0][4]), ("NONE",)):
