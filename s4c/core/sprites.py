@@ -119,7 +119,7 @@ def print_converted_sprites(mode, direc, *args):
         print(f"Missing s4c_path in print_converted_sprits: {mode}")
         usage()
     # We start the count from one so we account for one more cell for array declaration
-    frames = 1
+    frames = 0
     target_name = os.path.basename(os.path.normpath(direc)).replace("-","_")
 
     for file in sorted(glob.glob(f"{direc}/*.png"),
@@ -132,7 +132,6 @@ def print_converted_sprites(mode, direc, *args):
         frames += 1
 
     target_sprites = []
-    target_palette = (0,0,0)
     for idx, file in enumerate(sorted(glob.glob(f"{direc}/*.png"),
                       key=lambda f:
                       int(re.search(r'\d+', f).group()))):
@@ -140,13 +139,12 @@ def print_converted_sprites(mode, direc, *args):
         (conv_chars, frame_width, frame_height, rbg_palette,
          palette_size) = convert_sprite(file)
         if idx == 0:
-            target_palette = rbg_palette
             target_sprites.append([conv_chars, frame_width, frame_height,
                                rbg_palette, palette_size])
         else:
-            if rbg_palette != target_palette: #Must have same palette as first sprite
+            if rbg_palette != target_sprites[0][3]: #Must have same palette as first sprite
                 print(f"\n\n[ERROR] at file #{idx}: {file}: palette mismatch\n")
-                print(f"\texpected: {target_palette}")
+                print(f"\texpected: {target_sprites[0][3]}")
                 print(f"\tfound: {rbg_palette}\n")
                 print("You must have all frames using the same palette.\n")
                 return False
@@ -156,10 +154,12 @@ def print_converted_sprites(mode, direc, *args):
     # Start file output, beginning with version number
 
     if len(args) == 0:
-        callargs = ("NONE")
+        if print_heading(mode, target_name, FILE_VERSION,
+                         (frames, target_sprites[0][4]), ("NONE",)):
+            return True
     else:
-        callargs = args
-        if print_heading(mode, target_name, FILE_VERSION, (frames, target_sprites[0][4]), callargs[0]):
+        if print_heading(mode, target_name, FILE_VERSION,
+                         (frames, target_sprites[0][4]), args[0]):
             return True
     print_impl_ending(mode, target_name, frames, target_sprites)
     return True

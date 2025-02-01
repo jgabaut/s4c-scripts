@@ -112,28 +112,26 @@ def parse_sprite(sprite, rgb_palette, char_map):
 
 
 def convert_spritesheet(mode, filename, s: SheetArgs, *args):
+    """! Converts a spritesheet to a 3D char array repr of pixel color.
+    The prints it with the needed brackets and commas.
+    Depending on mode (s4c-file, C-header, C-impl) there will be a different output.
+    @param mode    The mode for output generation.
+    @param filename   The input spritesheet file.
+    """
+
     if mode not in ('s4c', 'header', 'cfile', 'header-exp', 'cfile-exp') :
         print(f"Unexpected mode value in convert_spritesheet(): {mode}")
         usage()
     if mode in ('header-exp', 'cfile-exp') and len(args) < 1:
         print(f"Missing s4c_path in convert_spritesheet(): {mode}")
         usage()
-    """! Converts a spritesheet to a 3D char array repr of pixel color.
-    The prints it with the needed brackets and commas.
-      Depending on mode (s4c-file, C-header, C-impl) there will be a different output.
-    @param mode    The mode for output generation.
-    @param filename   The input spritesheet file.
-    """
+
     target_name = os.path.splitext(os.path.basename(filename))[0].replace("-","_")
 
-
     img = Image.open(filename)
-    sprites = []
-
 
     #for i in range(img.size[1] // (sprite_h + sep_size * (sprites_per_column - 1))):
 
-    target_palette = (0,0,0)
     target_sprites = []
     for k in range((img.size[0] - s.start_x + s.sep_size) // (s.sprite_width + s.sep_size)):
         for j in range((img.size[1] - s.start_y + s.sep_size) // (s.sprite_height + s.sep_size)):
@@ -145,8 +143,10 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
             sprite = img.crop((spr_x, spr_y, spr_x + s.sprite_width , spr_y + s.sprite_height))
 
             sprite = sprite.convert('P', palette=Image.Palette.ADAPTIVE, colors=256)
-            palette = sprite.getpalette()
-            rgb_palette = [(palette[n], palette[n+1], palette[n+2]) for n in range(0, len(palette), 3)]
+            rgb_palette = [(sprite.getpalette()[n],
+                            sprite.getpalette()[n+1],
+                            sprite.getpalette()[n+2])
+                           for n in range(0, len(sprite.getpalette()), 3)]
 
             # Create the char_map dictionary based on the color values
             char_map = new_char_map(rgb_palette)
@@ -154,28 +154,28 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
             chars = parse_sprite(sprite, rgb_palette, char_map)
 
             if len(target_sprites) == 0:
-                target_palette = rgb_palette
                 target_sprites.append([chars, sprite.size[0], sprite.size[1],
                                        rgb_palette, len(rgb_palette)])
             else:
-                if rgb_palette != target_palette: #Must have same palette as first sprite
-                    print(f"\n\n[ERROR] at file #{target_sprites.len()}: palette mismatch\n")
-                    print(f"\texpected: {target_palette}")
+                if rgb_palette != target_sprites[0][3]: #Must have same palette as first sprite
+                    print(f"\n\n[ERROR] at sprite #{len(target_sprites)}: palette mismatch\n")
+                    print(f"\texpected: {target_sprites[0][3]}")
                     print(f"\tfound: {rgb_palette}\n")
                     print("You must have all frames using the same palette.\n")
                     return False
 
-                sprites.append(chars)
                 target_sprites.append([chars, sprite.size[0], sprite.size[1],
                                    rgb_palette, len(rgb_palette)])
 
     #print_sprites(mode, sprites, target_name)
     if len(args) == 0:
-        callargs = ("NONE")
+        if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
+                                                           target_sprites[0][4]), ("NONE",)):
+            return True
     else:
-        callargs = args
-    if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites), target_sprites[0][4]), callargs[0]):
-        return True
+        if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
+                                                           target_sprites[0][4]), args[0]):
+            return True
     print_impl_ending(mode, target_name, len(target_sprites), target_sprites)
     return True
 
@@ -187,17 +187,17 @@ def main(argv):
             print(f"FILE_VERSION v{FILE_VERSION}")
             sys.exit(0)
         elif len(argv)-1 == EXPECTED_ARGS+2:
-            if argv[1] == "--s4c-path":
-                s4c_path = argv[2]
-            else:
+            if argv[1] != "--s4c-path":
                 print("HEREW")
                 log_wrong_argnum(EXPECTED_ARGS, argv)
                 usage()
+            s4c_path = argv[2]
             mode = argv[3]
             mode = convert_mode_lit(mode)
             filename = argv[4]
             ints = intparse_args(argv[5], argv[6], argv[7], argv[8], argv[9])
-            convert_spritesheet(mode,filename,SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4]),s4c_path)
+            convert_spritesheet(mode,filename,
+                                SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4]),s4c_path)
         else:
             log_wrong_argnum(EXPECTED_ARGS, argv)
             print("HERE")

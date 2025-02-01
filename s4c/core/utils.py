@@ -90,7 +90,7 @@ def print_heading(mode, target_name, file_version, num_frames_and_colors, s4c_pa
     elif mode == "header":
         print_animation_header(target_name, file_version)
         #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
-        print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames-1}")
+        print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames}")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
         #print(f"extern char {target_name}[{num_frames}][MAXROWS][MAXCOLS];")
@@ -101,8 +101,8 @@ def print_heading(mode, target_name, file_version, num_frames_and_colors, s4c_pa
         print_animation_header(target_name, file_version)
         #s4c_path = args[0]
         print_wrapped_s4c_inclusion(s4c_path)
-        print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames-1}")
-        print(f"#define {target_name.upper()}_TOT_COLORS {num_colors-1}")
+        print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames}")
+        print(f"#define {target_name.upper()}_TOT_COLORS {num_colors}")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
         #print(f"extern S4C_Sprite {target_name}[{num_frames}];\n")
@@ -127,7 +127,7 @@ def print_palette_as_s4c_color_array(rgb_palette, palette_name):
         print(f"\t(S4C_Color){{\n\t\t.name = \"{color_name[:50]}\",")
         print(f"\t\t.r = {color[0]},\n\t\t.g = {color[1]},\n\t\t.b = {color[2]}\n\t}},")
 
-def print_impl_ending(mode, target_name, num_frames, target_sprites):
+def print_impl_ending(mode, target_name, _num_frames, target_sprites):
     """! Print the actual impl ending for a target.
     Replaces dashes in target_name with underscores.
     @param mode The impl mode
