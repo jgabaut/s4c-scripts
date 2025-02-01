@@ -81,10 +81,12 @@ def print_wrapped_s4c_inclusion(s4c_path):
     print("#undef S4C_SCRIPTS_PALETTE_ANIMATE_CLEANUP")
     print("#endif //PALETTE_ANIMATE_CLEANUP\n")
 
-def print_heading(mode, target_name, file_version, num_frames_and_colors, s4c_path):
+def print_heading(mode, target_name, file_version, sizes, s4c_path):
     """! Print the actual header for a target."""
-    num_frames = num_frames_and_colors[0]
-    num_colors = num_frames_and_colors[1]
+    num_frames = sizes[0]
+    num_colors = sizes[1]
+    frame_width = sizes[2]
+    frame_height = sizes[3]
     if mode == "s4c":
         print(f"{file_version}")
     elif mode == "header":
@@ -103,6 +105,8 @@ def print_heading(mode, target_name, file_version, num_frames_and_colors, s4c_pa
         print_wrapped_s4c_inclusion(s4c_path)
         print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames}")
         print(f"#define {target_name.upper()}_TOT_COLORS {num_colors}")
+        print(f"#define {target_name.upper()}_FRAME_WIDTH {frame_width}")
+        print(f"#define {target_name.upper()}_FRAME_HEIGHT {frame_height}")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
         #print(f"extern S4C_Sprite {target_name}[{num_frames}];\n")
@@ -166,8 +170,14 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
             for row in target[0]:
                 print("\t\t\t{ \""+row+"\" },")
             print("\t\t},")
-            print(f"\t\t.frame_height = {target[2]},")
-            print(f"\t\t.frame_width = {target[1]},")
+            #Instead of accurately using the sprite's height, we use the defined macro
+            # since we expect them to be the same
+            #print(f"\t\t.frame_height = {target[2]},")
+            print(f"\t\t.frame_height = {target_name.upper()}_FRAME_HEIGHT,")
+            #Instead of accurately using the sprite's width, we use the defined macro
+            # since we expect them to be the same
+            #print(f"\t\t.frame_width = {target[1]},")
+            print(f"\t\t.frame_width = {target_name.upper()}_FRAME_WIDTH,")
             print(f"\t\t.palette = &{target_name}_palette,")
 
             #Instead of accurately using the sprite's palette size, we use the defined macro

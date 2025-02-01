@@ -155,11 +155,15 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
 
     if len(args) == 0:
         if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
-                                                           target_sprites[0][4]), ("NONE",)):
+                                                           target_sprites[0][4],
+                                                           target_sprites[0][1],
+                                                           target_sprites[0][2]), ("NONE",)):
             return True
     else:
         if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
-                                                           target_sprites[0][4]), args[0]):
+                                                           target_sprites[0][4],
+                                                           target_sprites[0][1],
+                                                           target_sprites[0][2]), args[0]):
             return True
     print_impl_ending(mode, target_name, len(target_sprites), target_sprites)
     return True

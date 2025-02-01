@@ -113,10 +113,10 @@ def print_converted_sprites(mode, direc, *args):
     @param direc   The directory of image files to convert and print.
     """
     if mode not in ('s4c', 'header', 'cfile', 'header-exp', 'cfile-exp') :
-        print(f"Unexpected mode value in print_converted_sprites: {mode}")
+        print(f"Unexpected mode value in print_converted_sprites(): {mode}")
         usage()
     if mode in ('header-exp', 'cfile-exp') and len(args) < 1:
-        print(f"Missing s4c_path in print_converted_sprits: {mode}")
+        print(f"Missing s4c_path in print_converted_sprites(): {mode}")
         usage()
     # We start the count from one so we account for one more cell for array declaration
     frames = 0
@@ -167,11 +167,13 @@ def print_converted_sprites(mode, direc, *args):
 
     if len(args) == 0:
         if print_heading(mode, target_name, FILE_VERSION,
-                         (frames, target_sprites[0][4]), ("NONE",)):
+                         (frames, target_sprites[0][4], target_sprites[0][1], target_sprites[0][2]),
+                         ("NONE",)):
             return True
     else:
         if print_heading(mode, target_name, FILE_VERSION,
-                         (frames, target_sprites[0][4]), args[0]):
+                         (frames, target_sprites[0][4], target_sprites[0][1], target_sprites[0][2]),
+                         args[0]):
             return True
     print_impl_ending(mode, target_name, frames, target_sprites)
     return True
