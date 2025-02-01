@@ -176,8 +176,7 @@ def main(argv):
             print(f"FILE_VERSION v{FILE_VERSION}")
             sys.exit(0)
         elif len(argv)-1 == EXPECTED_ARGS+2:
-            if argv[1] != "--s4c-path":
-                print("HEREW")
+            if argv[1] != "--s4c_path":
                 log_wrong_argnum(EXPECTED_ARGS, argv)
                 usage()
             s4c_path = argv[2]
@@ -189,7 +188,6 @@ def main(argv):
                                 SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4]),s4c_path)
         else:
             log_wrong_argnum(EXPECTED_ARGS, argv)
-            print("HERE")
             usage()
     else:
         mode = argv[1]
