@@ -111,6 +111,7 @@ def print_heading(mode, target_name, file_version, sizes, s4c_path):
         # since we expect them to be the same
         #print(f"extern S4C_Sprite {target_name}[{num_frames}];\n")
         print(f"extern S4C_Sprite {target_name}[{target_name.upper()}_TOT_FRAMES+1];\n")
+        print(f"extern S4C_Color {target_name}_palette[{target_name.upper()}_TOT_COLORS+1];\n")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
         return True
     elif mode in ('cfile', 'cfile-exp'):
