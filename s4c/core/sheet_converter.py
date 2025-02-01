@@ -135,7 +135,19 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
                     print(f"\n\n[ERROR] at sprite #{len(target_sprites)}: palette mismatch\n")
                     print(f"\texpected: {target_sprites[0][3]}")
                     print(f"\tfound: {rgb_palette}\n")
-                    print("You must have all frames using the same palette.\n")
+                    print("All frames must use the same palette.\n")
+                    return False
+                if sprite.size[0] != target_sprites[0][1]: #Must have same width as first sprite
+                    print(f"\n\n[ERROR] at sprite #{len(target_sprites)}: width mismatch\n")
+                    print(f"\texpected: {target_sprites[0][1]}")
+                    print(f"\tfound: {sprite.size[0]}\n")
+                    print("All frames must have the same width.\n")
+                    return False
+                if sprite.size[1] != target_sprites[0][2]: #Must have same height as first sprite
+                    print(f"\n\n[ERROR] at sprite #{len(target_sprites)}: height mismatch\n")
+                    print(f"\texpected: {target_sprites[0][2]}")
+                    print(f"\tfound: {sprite.size[1]}\n")
+                    print("All frames must have the same height.\n")
                     return False
 
                 target_sprites.append([chars, sprite.size[0], sprite.size[1],

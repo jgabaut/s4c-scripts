@@ -146,7 +146,19 @@ def print_converted_sprites(mode, direc, *args):
                 print(f"\n\n[ERROR] at file #{idx}: {file}: palette mismatch\n")
                 print(f"\texpected: {target_sprites[0][3]}")
                 print(f"\tfound: {rbg_palette}\n")
-                print("You must have all frames using the same palette.\n")
+                print("All frames must use the same palette.\n")
+                return False
+            if frame_width != target_sprites[0][1]: #Must have same width as first sprite
+                print(f"\n\n[ERROR] at file #{idx}: {file}: width mismatch\n")
+                print(f"\texpected: {target_sprites[0][1]}")
+                print(f"\tfound: {frame_width}\n")
+                print("All frames must have the same width.\n")
+                return False
+            if frame_height != target_sprites[0][2]: #Must have same height as first sprite
+                print(f"\n\n[ERROR] at file #{idx}: {file}: height mismatch\n")
+                print(f"\texpected: {target_sprites[0][2]}")
+                print(f"\tfound: {frame_height}\n")
+                print("All frames must have the same height.\n")
                 return False
             target_sprites.append([conv_chars, frame_width, frame_height,
                                rbg_palette, palette_size])
