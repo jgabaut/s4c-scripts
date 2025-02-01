@@ -129,7 +129,8 @@ def print_palette_as_s4c_color_array(rgb_palette, palette_name):
     for color_idx, color in enumerate(rgb_palette):
         color_name = f"{color_idx}_COLOR_{palette_name}"
         print(f"\t(S4C_Color){{\n\t\t.name = \"{color_name[:50]}\",")
-        print(f"\t\t.r = {color[0]},\n\t\t.g = {color[1]},\n\t\t.b = {color[2]}\n\t}},")
+        print(f"\t\t.red = {color[0]},\n\t\t.green = {color[1]},\n\t\t.blue = {color[2]}")
+        print("\t},")
 
 def print_impl_ending(mode, target_name, _num_frames, target_sprites):
     """! Print the actual impl ending for a target.
@@ -152,7 +153,7 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
         #Using the first sprite's palette since they must be all equal
         print(f"\nS4C_Color {target_name}_palette[{target_name.upper()}_TOT_COLORS+1] = {{")
         print_palette_as_s4c_color_array(target_sprites[0][3], target_name)
-        print("}}\n")
+        print("};\n")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
         #print(f"\nS4C_Sprite {target_name}[{num_frames}] = ", "{\n")
@@ -178,7 +179,7 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
             # since we expect them to be the same
             #print(f"\t\t.frame_width = {target[1]},")
             print(f"\t\t.frame_width = {target_name.upper()}_FRAME_WIDTH,")
-            print(f"\t\t.palette = &{target_name}_palette,")
+            print(f"\t\t.palette = &({target_name}_palette[0]),")
 
             #Instead of accurately using the sprite's palette size, we use the defined macro
             # since we expect them to be the same
