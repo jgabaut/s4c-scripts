@@ -92,6 +92,14 @@ def print_heading(mode, target_name, file_version, sizes, s4c_path):
     elif mode == "header":
         print_animation_header(target_name, file_version)
         #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
+
+        ###
+        #We'd like to print s4c header inclusion but 0.1.x CLI interface does not require
+        # it for header mode
+        #
+        #print_wrapped_s4c_inclusion(s4c_path)
+        ###
+
         print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames}")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
