@@ -32,7 +32,7 @@
 #
 # @section author_sprites Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 31/01/2025.
+# - Modified by jgabaut on 12/02/2025.
 
 # Imports
 import sys
@@ -46,6 +46,7 @@ from .utils import print_impl_ending
 from .utils import get_converted_char
 from .utils import new_char_map
 from .utils import log_wrong_argnum
+from .utils import validate_sprite
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
@@ -142,23 +143,11 @@ def print_converted_sprites(mode, direc, *args):
             target_sprites.append([conv_chars, frame_width, frame_height,
                                rbg_palette, palette_size])
         else:
-            if rbg_palette != target_sprites[0][3]: #Must have same palette as first sprite
-                print(f"\n\n[ERROR] at file #{idx}: {file}: palette mismatch\n")
-                print(f"\texpected: {target_sprites[0][3]}")
-                print(f"\tfound: {rbg_palette}\n")
-                print("All frames must use the same palette.\n")
-                return False
-            if frame_width != target_sprites[0][1]: #Must have same width as first sprite
-                print(f"\n\n[ERROR] at file #{idx}: {file}: width mismatch\n")
-                print(f"\texpected: {target_sprites[0][1]}")
-                print(f"\tfound: {frame_width}\n")
-                print("All frames must have the same width.\n")
-                return False
-            if frame_height != target_sprites[0][2]: #Must have same height as first sprite
-                print(f"\n\n[ERROR] at file #{idx}: {file}: height mismatch\n")
-                print(f"\texpected: {target_sprites[0][2]}")
-                print(f"\tfound: {frame_height}\n")
-                print("All frames must have the same height.\n")
+            if not validate_sprite(rbg_palette, frame_width, frame_height,
+                                target_sprites[0][3], #palette
+                                (target_sprites[0][1], #width
+                                target_sprites[0][2]) #height
+                                ):
                 return False
             target_sprites.append([conv_chars, frame_width, frame_height,
                                rbg_palette, palette_size])

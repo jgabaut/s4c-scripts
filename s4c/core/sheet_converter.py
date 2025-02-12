@@ -35,7 +35,7 @@
 #
 # @section author_spritesheet Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 19/01/2024.
+# - Modified by jgabaut on 12/02/2025.
 
 # Imports
 import sys
@@ -47,14 +47,18 @@ from .utils import print_impl_ending
 from .utils import get_converted_char
 from .utils import new_char_map
 from .utils import log_wrong_argnum
+from .utils import validate_sprite
 from .utils import intparse_args
+from .utils import intparse_arg
 from .utils import SheetArgs
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.1.1"
-F_STR_ARGS = "<mode> <sheet> <sprite_width> <sprite_heigth> <separator_size> <start_x> <start_y>"
-EXPECTED_ARGS = 7
+SCRIPT_VERSION = "0.2.0"
+F_STR_ARGS = "<mode> <sheet>\
+ <sprite_width> <sprite_heigth>\
+ <separator_size> <start_x> <start_y> <num_sprites>"
+EXPECTED_ARGS = 8
 
 # Functions
 def usage():
@@ -64,7 +68,8 @@ def usage():
  sprite width,\
  sprite height,\
  sep size,\
- left corner of first sprite's X, Y."
+ left corner of first sprite's X, Y\
+ number of sprites."
     print(f"Wrong arguments. Needed: {f_string_usage}")
     print(f"\nUsage:\tpython {os.path.basename(__file__)} [--s4c_path <s4c_path] {F_STR_ARGS}")
     print("\n    mode:\n\t  s4c-file\n\t  C-header\n\t  C-impl")
@@ -109,6 +114,8 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
     target_sprites = []
     for k in range((img.size[0] - s.start_x + s.sep_size) // (s.sprite_width + s.sep_size)):
         for j in range((img.size[1] - s.start_y + s.sep_size) // (s.sprite_height + s.sep_size)):
+            if len(target_sprites) >= s.sprites_num:
+                continue #We ignore remaining frames
             spr_x = s.start_x + j * (s.sprite_width + s.sep_size)
             #+ (sep_size if j > 0 else 0)
             spr_y = s.start_y + k * (s.sprite_height + s.sep_size)
@@ -131,23 +138,11 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
                 target_sprites.append([chars, sprite.size[0], sprite.size[1],
                                        rgb_palette, len(rgb_palette)])
             else:
-                if rgb_palette != target_sprites[0][3]: #Must have same palette as first sprite
-                    print(f"\n\n[ERROR] at sprite #{len(target_sprites)}: palette mismatch\n")
-                    print(f"\texpected: {target_sprites[0][3]}")
-                    print(f"\tfound: {rgb_palette}\n")
-                    print("All frames must use the same palette.\n")
-                    return False
-                if sprite.size[0] != target_sprites[0][1]: #Must have same width as first sprite
-                    print(f"\n\n[ERROR] at sprite #{len(target_sprites)}: width mismatch\n")
-                    print(f"\texpected: {target_sprites[0][1]}")
-                    print(f"\tfound: {sprite.size[0]}\n")
-                    print("All frames must have the same width.\n")
-                    return False
-                if sprite.size[1] != target_sprites[0][2]: #Must have same height as first sprite
-                    print(f"\n\n[ERROR] at sprite #{len(target_sprites)}: height mismatch\n")
-                    print(f"\texpected: {target_sprites[0][2]}")
-                    print(f"\tfound: {sprite.size[1]}\n")
-                    print("All frames must have the same height.\n")
+                if not validate_sprite(rgb_palette, sprite.size[0], sprite.size[1],
+                                    target_sprites[0][3], #palette
+                                    (target_sprites[0][1], #width
+                                    target_sprites[0][2]) #height
+                                    ):
                     return False
 
                 target_sprites.append([chars, sprite.size[0], sprite.size[1],
@@ -184,8 +179,10 @@ def main(argv):
             mode = convert_mode_lit(mode)
             filename = argv[4]
             ints = intparse_args(argv[5], argv[6], argv[7], argv[8], argv[9])
+            sprites_num = intparse_arg(argv[10])
             convert_spritesheet(mode,filename,
-                                SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4]),s4c_path)
+                                SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4],sprites_num),
+                                s4c_path)
         else:
             log_wrong_argnum(EXPECTED_ARGS, argv)
             usage()
@@ -194,7 +191,9 @@ def main(argv):
         mode = convert_mode_lit(mode)
         filename = argv[2]
         ints = intparse_args(argv[3], argv[4], argv[5], argv[6], argv[7])
-        convert_spritesheet(mode,filename,SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4]))
+        sprites_num = intparse_arg(argv[8])
+        convert_spritesheet(mode,filename,
+                            SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4],sprites_num))
 
 if __name__ == "__main__":
     main(sys.argv)

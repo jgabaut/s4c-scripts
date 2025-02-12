@@ -36,7 +36,7 @@
 #
 # @section author_cut_spritesheet Author(s)
 # - Created by jgabaut on 17/04/2023.
-# - Modified by jgabaut on 31/01/2025.
+# - Modified by jgabaut on 12/02/2025.
 
 # Imports
 import sys
@@ -44,15 +44,18 @@ import os
 from PIL import Image
 from .utils import log_wrong_argnum
 from .utils import intparse_args
+from .utils import intparse_arg
 from .utils import SheetArgs
 
-SCRIPT_VERSION="0.1.0"
+SCRIPT_VERSION="0.2.0"
 
 F_ARG_OUTD = "<output_directory>"
 F_ARG_SW = "<sprite_width>"
 F_ARG_SH = "<sprite_height>"
-F_STRING_ARGS = f"<sheet_file> {F_ARG_OUTD} {F_ARG_SW} {F_ARG_SH} <sep_size> <start_x> <start_y>"
-EXPECTED_ARGS = 7
+F_STRING_ARGS = f"<sheet_file> {F_ARG_OUTD}\
+ {F_ARG_SW} {F_ARG_SH}\
+ <sep_size> <start_x> <start_y> <sprites_num>"
+EXPECTED_ARGS = 8
 
 # Functions
 def usage():
@@ -73,8 +76,11 @@ def cut_spritesheet(filename, output_dir, s: SheetArgs):
     img = img.convert('P', palette=Image.Palette.ADAPTIVE, colors=256)
 
     #sprite_index = 1
+    count_sprite = 0
     for i in range(sprites_per_row):
         for j in range(sprites_per_column):
+            if count_sprite > s.sprites_num:
+                continue #Ignore remaining sprites
             spr_x = s.start_x + j * (s.sprite_width + s.sep_size)
             spr_y = s.start_y + i * (s.sprite_height + s.sep_size)
             sprite = img.crop((spr_x, spr_y, spr_x + s.sprite_width, spr_y + s.sprite_height))
@@ -94,7 +100,8 @@ def main(argv):
         file = argv[1]
         outdir = argv[2]
         ints = intparse_args(argv[3], argv[4], argv[5], argv[6], argv[7])
-        cut_spritesheet(file,outdir,SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4]))
+        sprites_num = intparse_arg(argv[8])
+        cut_spritesheet(file,outdir,SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4],sprites_num))
 
 if __name__ == "__main__":
     main(sys.argv)
