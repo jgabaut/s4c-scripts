@@ -15,7 +15,7 @@
 #
 # @section author_utils Author(s)
 # - Created by jgabaut on 19/01/2024.
-# - Modified by jgabaut on 31/01/2025.
+# - Modified by jgabaut on 12/02/2025.
 
 import math
 from typing import NamedTuple
@@ -27,6 +27,7 @@ class SheetArgs(NamedTuple):
     sep_size: int
     start_x: int
     start_y: int
+    sprites_num: int
 
 def color_distance(c1, c2):
     """! Calculates the distance in color between two rgb tuples.
@@ -234,3 +235,29 @@ def intparse_args(s_spr_w, s_spr_h, s_sep_size, s_start_x, s_start_y):
     start_x = int(s_start_x)
     start_y = int(s_start_y)
     return (sprite_w, sprite_h, sep_size, start_x, start_y)
+
+def intparse_arg(arg):
+    """! Parse string arg as int."""
+    int_arg = int(arg)
+    return int_arg
+
+def validate_sprite(palette, width, height, target_palette, target_size):
+    """! Ensure a sprite has the same palette and size as the target values."""
+    target_width = target_size[0]
+    target_height = target_size[1]
+    if palette != target_palette: #Must have same palette as first sprite
+        print(f"\texpected: {target_palette}")
+        print(f"\tfound: {palette}\n")
+        print("All frames must use the same palette.\n")
+        return False
+    if width != target_width: #Must have same width as first sprite
+        print(f"\texpected: {target_width}")
+        print(f"\tfound: {width}\n")
+        print("All frames must have the same width.\n")
+        return False
+    if height != target_height: #Must have same height as first sprite
+        print(f"\texpected: {target_height}")
+        print(f"\tfound: {height}\n")
+        print("All frames must have the same height.\n")
+        return False
+    return True
