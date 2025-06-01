@@ -32,7 +32,7 @@
 #
 # @section author_sprites Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 19/01/2024.
+# - Modified by jgabaut on 31/01/2025.
 
 # Imports
 import sys
@@ -41,14 +41,15 @@ import re
 import os
 from PIL import Image
 from .utils import convert_mode_lit
-from .utils import print_animation_header
+from .utils import print_heading
+from .utils import print_impl_ending
 from .utils import get_converted_char
 from .utils import new_char_map
 from .utils import log_wrong_argnum
 
 ## The file format version.
-FILE_VERSION = "0.2.2"
-SCRIPT_VERSION = "0.1.0"
+FILE_VERSION = "0.2.3"
+SCRIPT_VERSION = "0.1.1"
 EXPECTED_ARGS = 2
 
 # Expects the sprite directory name as first argument.
@@ -58,16 +59,18 @@ EXPECTED_ARGS = 2
 def usage():
     """! Prints correct invocation."""
     print("Wrong arguments. Needed: mode, sprites directory")
-    print(f"\nUsage:\tpython {os.path.basename(__file__)} <mode> <sprites_directory>")
+    print(f"\nUsage:\tpython {os.path.basename(__file__)}\
+ [--s4c_path <s4c_path>]\
+ <mode> <sprites_directory>")
     print("\n  mode:  \n\ts4c-file\n\tC-header\n\tC-impl")
     sys.exit(1)
 
-def convert_sprite(file,chars):
+def convert_sprite(file):
     """! Takes a image and converts each pixel to a char for its color (closest match to char_map).
 
     @param file   The image file to convert.
 
-    @return  The converted sprite as a char matrix.
+    @return  A tuple of : char matrix, width, height, rbg palette, palette size.
     """
     img = Image.open(file)
 
@@ -80,14 +83,17 @@ def convert_sprite(file,chars):
     # Map the color indices to their RGB values in the palette
     rgb_palette = [(palette[i], palette[i+1], palette[i+2]) for i in range(0, len(palette), 3)]
 
+    palette_size = len(rgb_palette)
+
     # Create the char_map dictionary based on the color values
     char_map = new_char_map(rgb_palette)
 
     # Convert each pixel to its corresponding character representation
     r, g, b = 0, 0, 0
-    for y in range(img.size[1]):
+    chars = []
+    for y in range(img.size[1]): #Height
         line = ""
-        for x in range(img.size[0]):
+        for x in range(img.size[0]): #Width
             color_index = img.getpixel((x, y))
             r, g, b = rgb_palette[color_index]
             char = get_converted_char(char_map, r, g, b)
@@ -95,7 +101,9 @@ def convert_sprite(file,chars):
 
         chars.append(line)
 
-def print_converted_sprites(mode, direc):
+    return (chars, img.size[0], img.size[1], rgb_palette, palette_size)
+
+def print_converted_sprites(mode, direc, *args):
     """! Takes a mode (s4c, header, cfile) and a dir with images, calls convert_sprite on each one.
     Outputs the converted sprites to stdout, with the needed brackets for a valid C array decl.
     According to the mode, the file generated is:
@@ -104,11 +112,14 @@ def print_converted_sprites(mode, direc):
       or the version-tagged s4c-file.
     @param direc   The directory of image files to convert and print.
     """
-    if mode not in ('s4c', 'header', 'cfile') :
-        print(f"Unexpected mode value in print_converted_sprites: {mode}")
+    if mode not in ('s4c', 'header', 'cfile', 'header-exp', 'cfile-exp') :
+        print(f"Unexpected mode value in print_converted_sprites(): {mode}")
+        usage()
+    if mode in ('header-exp', 'cfile-exp') and len(args) < 1:
+        print(f"Missing s4c_path in print_converted_sprites(): {mode}")
         usage()
     # We start the count from one so we account for one more cell for array declaration
-    frames = 1
+    frames = 0
     target_name = os.path.basename(os.path.normpath(direc)).replace("-","_")
 
     for file in sorted(glob.glob(f"{direc}/*.png"),
@@ -120,36 +131,52 @@ def print_converted_sprites(mode, direc):
             #ysize = ref_img.size[1]+1
         frames += 1
 
+    target_sprites = []
+    for idx, file in enumerate(sorted(glob.glob(f"{direc}/*.png"),
+                      key=lambda f:
+                      int(re.search(r'\d+', f).group()))):
+        # convert a sprite and print the result
+        (conv_chars, frame_width, frame_height, rbg_palette,
+         palette_size) = convert_sprite(file)
+        if idx == 0:
+            target_sprites.append([conv_chars, frame_width, frame_height,
+                               rbg_palette, palette_size])
+        else:
+            if rbg_palette != target_sprites[0][3]: #Must have same palette as first sprite
+                print(f"\n\n[ERROR] at file #{idx}: {file}: palette mismatch\n")
+                print(f"\texpected: {target_sprites[0][3]}")
+                print(f"\tfound: {rbg_palette}\n")
+                print("All frames must use the same palette.\n")
+                return False
+            if frame_width != target_sprites[0][1]: #Must have same width as first sprite
+                print(f"\n\n[ERROR] at file #{idx}: {file}: width mismatch\n")
+                print(f"\texpected: {target_sprites[0][1]}")
+                print(f"\tfound: {frame_width}\n")
+                print("All frames must have the same width.\n")
+                return False
+            if frame_height != target_sprites[0][2]: #Must have same height as first sprite
+                print(f"\n\n[ERROR] at file #{idx}: {file}: height mismatch\n")
+                print(f"\texpected: {target_sprites[0][2]}")
+                print(f"\tfound: {frame_height}\n")
+                print("All frames must have the same height.\n")
+                return False
+            target_sprites.append([conv_chars, frame_width, frame_height,
+                               rbg_palette, palette_size])
+
     # Start file output, beginning with version number
 
-    if mode == "s4c" :
-        print(f"{FILE_VERSION}")
-    elif mode == "header":
-        print_animation_header(target_name, FILE_VERSION)
-        #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
-        print(f"extern char {target_name}[{frames}][MAXROWS][MAXCOLS];")
-        print("\n#endif")
-        return
-    elif mode == "cfile":
-        print(f"#include \"{target_name}.h\"\n")
-
-    #print("char {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
-    print(f"char {target_name}[{frames}][MAXROWS][MAXCOLS] = ", "{\n")
-    idx = 1
-    for file in sorted(glob.glob(f"{direc}/*.png"),
-                      key=lambda f:
-                      int(re.search(r'\d+', f).group())):
-        # convert a sprite and print the result
-        chars = []
-        convert_sprite(file,chars)
-        print(f"\t//Frame {idx}")
-        print("\t{")
-        for row in chars:
-            print("\t\t\""+row+"\",")
-        print("\t},"+ "\n")
-        idx += 1
-    print("};")
-    return
+    if len(args) == 0:
+        if print_heading(mode, target_name, FILE_VERSION,
+                         (frames, target_sprites[0][4], target_sprites[0][1], target_sprites[0][2]),
+                         ("NONE",)):
+            return True
+    else:
+        if print_heading(mode, target_name, FILE_VERSION,
+                         (frames, target_sprites[0][4], target_sprites[0][1], target_sprites[0][2]),
+                         args[0]):
+            return True
+    print_impl_ending(mode, target_name, frames, target_sprites)
+    return True
 
 
 def main(argv):
@@ -158,6 +185,13 @@ def main(argv):
         if (len(argv) == 2 and argv[1] in ('version', '-v', '--version')):
             print(f"sprites v{SCRIPT_VERSION}")
             print(f"FILE_VERSION v{FILE_VERSION}")
+            sys.exit(0)
+        elif len(argv) == 5:
+            s4c_path = argv[2]
+            mode = argv[3]
+            mode = convert_mode_lit(mode)
+            directory = argv[4]
+            print_converted_sprites(mode,directory,s4c_path)
             sys.exit(0)
         log_wrong_argnum(EXPECTED_ARGS,argv)
         usage()

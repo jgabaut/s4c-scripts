@@ -42,7 +42,8 @@ import sys
 import os
 from PIL import Image
 from .utils import convert_mode_lit
-from .utils import print_animation_header
+from .utils import print_heading
+from .utils import print_impl_ending
 from .utils import get_converted_char
 from .utils import new_char_map
 from .utils import log_wrong_argnum
@@ -50,8 +51,8 @@ from .utils import intparse_args
 from .utils import SheetArgs
 
 ## The file format version.
-FILE_VERSION = "0.2.2"
-SCRIPT_VERSION = "0.1.0"
+FILE_VERSION = "0.2.3"
+SCRIPT_VERSION = "0.1.1"
 F_STR_ARGS = "<mode> <sheet> <sprite_width> <sprite_heigth> <separator_size> <start_x> <start_y>"
 EXPECTED_ARGS = 7
 
@@ -65,34 +66,9 @@ def usage():
  sep size,\
  left corner of first sprite's X, Y."
     print(f"Wrong arguments. Needed: {f_string_usage}")
-    print(f"\nUsage:\tpython {os.path.basename(__file__)} {F_STR_ARGS}")
+    print(f"\nUsage:\tpython {os.path.basename(__file__)} [--s4c_path <s4c_path] {F_STR_ARGS}")
     print("\n    mode:\n\t  s4c-file\n\t  C-header\n\t  C-impl")
-
-
-def print_sprites(mode, sprites, target_name):
-    """! Prints the wanted mode output for passed sprites array."""
-    if mode == "s4c" :
-        print(f"{FILE_VERSION}")
-    elif mode == "header":
-        print_animation_header(target_name, FILE_VERSION)
-        #print(f"extern char {target_name}[{len(sprites)+1}][{sprite_h+1}][{sprite_w+1}];")
-        print(f"extern char {target_name}[{len(sprites)+1}][MAXROWS][MAXCOLS];")
-        print("\n#endif")
-        return
-    elif mode == "cfile":
-        print(f"#include \"{target_name}.h\"\n")
-
-    #print(f"char {target_name}[{len(sprites)+1}][{sprite_h+1}][{sprite_w+1}] = ", "{\n")
-    print("char {target_name}[{len(sprites)+1}][MAXROWS][MAXCOLS] = ", "{\n")
-    for i, sprite in enumerate(sprites):
-        print(f"\t//Sprite {i+1}, index {i}")
-        print("\t{")
-        for row in sprite:
-            print("\t\t\"" + row + "\",")
-        print("\t}," + "\n")
-    print("};")
-    return
-
+    sys.exit(1)
 
 def parse_sprite(sprite, rgb_palette, char_map):
     """! Parse sprite using the palette and charmap, returns char array."""
@@ -109,27 +85,28 @@ def parse_sprite(sprite, rgb_palette, char_map):
     return chars
 
 
-def convert_spritesheet(mode, filename, s: SheetArgs):
+def convert_spritesheet(mode, filename, s: SheetArgs, *args):
     """! Converts a spritesheet to a 3D char array repr of pixel color.
     The prints it with the needed brackets and commas.
-      Depending on mode (s4c-file, C-header, C-impl) there will be a different output.
+    Depending on mode (s4c-file, C-header, C-impl) there will be a different output.
     @param mode    The mode for output generation.
     @param filename   The input spritesheet file.
     """
+
+    if mode not in ('s4c', 'header', 'cfile', 'header-exp', 'cfile-exp') :
+        print(f"Unexpected mode value in convert_spritesheet(): {mode}")
+        usage()
+    if mode in ('header-exp', 'cfile-exp') and len(args) < 1:
+        print(f"Missing s4c_path in convert_spritesheet(): {mode}")
+        usage()
+
     target_name = os.path.splitext(os.path.basename(filename))[0].replace("-","_")
 
-
     img = Image.open(filename)
-    sprites = []
-
-    img = img.convert('P', palette=Image.Palette.ADAPTIVE, colors=256)
-    palette = img.getpalette()
-    rgb_palette = [(palette[n], palette[n+1], palette[n+2]) for n in range(0, len(palette), 3)]
-    # Create the char_map dictionary based on the color values
-    char_map = new_char_map(rgb_palette)
 
     #for i in range(img.size[1] // (sprite_h + sep_size * (sprites_per_column - 1))):
 
+    target_sprites = []
     for k in range((img.size[0] - s.start_x + s.sep_size) // (s.sprite_width + s.sep_size)):
         for j in range((img.size[1] - s.start_y + s.sep_size) // (s.sprite_height + s.sep_size)):
             spr_x = s.start_x + j * (s.sprite_width + s.sep_size)
@@ -139,11 +116,57 @@ def convert_spritesheet(mode, filename, s: SheetArgs):
                 # + (sep_size if k > 0 else 0)
             sprite = img.crop((spr_x, spr_y, spr_x + s.sprite_width , spr_y + s.sprite_height))
 
+            sprite = sprite.convert('P', palette=Image.Palette.ADAPTIVE, colors=256)
+            rgb_palette = [(sprite.getpalette()[n],
+                            sprite.getpalette()[n+1],
+                            sprite.getpalette()[n+2])
+                           for n in range(0, len(sprite.getpalette()), 3)]
+
+            # Create the char_map dictionary based on the color values
+            char_map = new_char_map(rgb_palette)
+
             chars = parse_sprite(sprite, rgb_palette, char_map)
 
-            sprites.append(chars)
+            if len(target_sprites) == 0:
+                target_sprites.append([chars, sprite.size[0], sprite.size[1],
+                                       rgb_palette, len(rgb_palette)])
+            else:
+                if rgb_palette != target_sprites[0][3]: #Must have same palette as first sprite
+                    print(f"\n\n[ERROR] at sprite #{len(target_sprites)}: palette mismatch\n")
+                    print(f"\texpected: {target_sprites[0][3]}")
+                    print(f"\tfound: {rgb_palette}\n")
+                    print("All frames must use the same palette.\n")
+                    return False
+                if sprite.size[0] != target_sprites[0][1]: #Must have same width as first sprite
+                    print(f"\n\n[ERROR] at sprite #{len(target_sprites)}: width mismatch\n")
+                    print(f"\texpected: {target_sprites[0][1]}")
+                    print(f"\tfound: {sprite.size[0]}\n")
+                    print("All frames must have the same width.\n")
+                    return False
+                if sprite.size[1] != target_sprites[0][2]: #Must have same height as first sprite
+                    print(f"\n\n[ERROR] at sprite #{len(target_sprites)}: height mismatch\n")
+                    print(f"\texpected: {target_sprites[0][2]}")
+                    print(f"\tfound: {sprite.size[1]}\n")
+                    print("All frames must have the same height.\n")
+                    return False
 
-    print_sprites(mode, sprites, target_name)
+                target_sprites.append([chars, sprite.size[0], sprite.size[1],
+                                   rgb_palette, len(rgb_palette)])
+
+    if len(args) == 0:
+        if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
+                                                           target_sprites[0][4],
+                                                           target_sprites[0][1],
+                                                           target_sprites[0][2]), ("NONE",)):
+            return True
+    else:
+        if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
+                                                           target_sprites[0][4],
+                                                           target_sprites[0][1],
+                                                           target_sprites[0][2]), args[0]):
+            return True
+    print_impl_ending(mode, target_name, len(target_sprites), target_sprites)
+    return True
 
 def main(argv):
     """! Main program entry."""
@@ -152,8 +175,20 @@ def main(argv):
             print(f"sheet_converter v{SCRIPT_VERSION}")
             print(f"FILE_VERSION v{FILE_VERSION}")
             sys.exit(0)
-        log_wrong_argnum(EXPECTED_ARGS, argv)
-        usage()
+        elif len(argv)-1 == EXPECTED_ARGS+2:
+            if argv[1] != "--s4c_path":
+                log_wrong_argnum(EXPECTED_ARGS, argv)
+                usage()
+            s4c_path = argv[2]
+            mode = argv[3]
+            mode = convert_mode_lit(mode)
+            filename = argv[4]
+            ints = intparse_args(argv[5], argv[6], argv[7], argv[8], argv[9])
+            convert_spritesheet(mode,filename,
+                                SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4]),s4c_path)
+        else:
+            log_wrong_argnum(EXPECTED_ARGS, argv)
+            usage()
     else:
         mode = argv[1]
         mode = convert_mode_lit(mode)
