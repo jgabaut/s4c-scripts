@@ -38,7 +38,7 @@ from .utils import print_wrapped_s4c_inclusion
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.1.3"
+SCRIPT_VERSION = "0.1.2"
 F_STRING_ARGS = "[--cfile-no-include] <mode> <palette> <s4c path>"
 
 # Expects the palette name as first argument, output directory as second argument.
