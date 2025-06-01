@@ -136,7 +136,7 @@ def main(argv):
             sys.exit(0)
         if (len(argv) == 5 and argv[1] in ('--cfile-no-include')):
             if argv[2] != 'C-impl':
-                print("Wrong arguments. Can't use --cfile-no-include with C-impl mode")
+                print("Wrong arguments. Can't use --cfile-no-include outside C-impl mode")
                 usage()
             mode = 'cfile'
             cfile_no_include = True
