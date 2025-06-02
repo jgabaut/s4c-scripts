@@ -28,7 +28,7 @@
 #
 # @section author_palette Author(s)
 # - Created by jgabaut on 01/09/2023.
-# - Modified by jgabaut on 31/01/2025.
+# - Modified by jgabaut on 02/06/2025.
 
 # Imports
 import sys
@@ -38,7 +38,7 @@ from .utils import print_wrapped_s4c_inclusion
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.1.2"
+SCRIPT_VERSION = "0.1.3"
 F_STRING_ARGS = "[--cfile-no-include] <mode> <palette> <s4c path>"
 
 # Expects the palette name as first argument, output directory as second argument.
@@ -119,7 +119,7 @@ def convert_palette(mode, palette_path, s4c_path, *args):
         print(f"extern S4C_Color {target_name}[{read_colors+1}];")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
     if mode == "cfile":
-        if len(args) > 0 and args[0] is False:
+        if len(args) == 0 or (len(args) > 0 and args[0] is False):
             print(f"#include \"{target_name}.h\"\n")
         print(f"S4C_Color {target_name}[{read_colors+1}] = {{")
         for color in colors:
