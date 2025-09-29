@@ -1,0 +1,20 @@
+[anvil]
+kern = "anvilPy"
+version = "2.1.0"
+
+[build]
+bin = "s4c"
+source = "s4c_cli.py"
+makevers = "3.0.0"
+automakevers = "3.0.0"
+tests = "kazoj"
+
+[tests]
+testsdir = "bone"
+errortestsdir = "kulpo"
+
+[versions]
+
+"0.1.5" = "Fix palette.py"
+"0.1.6" = "Bump deps"
+"0.2.0" = "Support s4c 0.5.0"

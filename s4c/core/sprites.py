@@ -32,7 +32,7 @@
 #
 # @section author_sprites Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 12/02/2025.
+# - Modified by jgabaut on 29/09/2025.
 
 # Imports
 import sys
@@ -50,7 +50,7 @@ from .utils import validate_sprite
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.1.1"
+SCRIPT_VERSION = "0.2.0"
 EXPECTED_ARGS = 2
 
 # Expects the sprite directory name as first argument.

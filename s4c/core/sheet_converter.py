@@ -35,7 +35,7 @@
 #
 # @section author_spritesheet Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 12/02/2025.
+# - Modified by jgabaut on 29/09/2025.
 
 # Imports
 import sys
