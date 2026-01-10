@@ -6,3 +6,5 @@ __pycache__
 build
 # ignore egg info dir
 s4c_scripts.egg-info
+# ignore bin dir
+bin
