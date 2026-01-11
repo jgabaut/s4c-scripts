@@ -15,7 +15,7 @@
 #
 # @section author_utils Author(s)
 # - Created by jgabaut on 19/01/2024.
-# - Modified by jgabaut on 31/01/2025.
+# - Modified by jgabaut on 29/09/2025.
 
 import math
 from typing import NamedTuple
@@ -27,6 +27,7 @@ class SheetArgs(NamedTuple):
     sep_size: int
     start_x: int
     start_y: int
+    sprites_num: int
 
 def color_distance(c1, c2):
     """! Calculates the distance in color between two rgb tuples.
@@ -103,8 +104,10 @@ def print_heading(mode, target_name, file_version, sizes, s4c_path):
         print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames}")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
-        #print(f"extern char {target_name}[{num_frames}][MAXROWS][MAXCOLS];")
-        print(f"extern char {target_name}[{target_name.upper()}_TOT_FRAMES+1][MAXROWS][MAXCOLS];\n")
+        #print(f"extern char {target_name}[{num_frames}][S4C_MAXROWS][S4C_MAXCOLS];")
+        r_txt="S4C_MAXROWS"
+        c_txt="S4C_MAXCOLS"
+        print(f"extern char {target_name}[{target_name.upper()}_TOT_FRAMES+1][{r_txt}][{c_txt}];\n")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
         return True
     elif mode == "header-exp":
@@ -155,8 +158,10 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
         #print("char {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
-        #print(f"char {target_name}[{num_frames}][MAXROWS][MAXCOLS] = ", "{\n")
-        print(f"char {target_name}[{target_name.upper()}_TOT_FRAMES+1][MAXROWS][MAXCOLS] = ", "{\n")
+        #print(f"char {target_name}[{num_frames}][S4C_MAXROWS][S4C_MAXCOLS] = ", "{\n")
+        r_txt="S4C_MAXROWS"
+        c_txt="S4C_MAXCOLS"
+        print(f"char {target_name}[{target_name.upper()}_TOT_FRAMES+1][{r_txt}][{c_txt}] = ", "{\n")
     elif mode == "cfile-exp":
         #s4c_path = args[0]
         #Using the first sprite's palette since they must be all equal
@@ -234,3 +239,29 @@ def intparse_args(s_spr_w, s_spr_h, s_sep_size, s_start_x, s_start_y):
     start_x = int(s_start_x)
     start_y = int(s_start_y)
     return (sprite_w, sprite_h, sep_size, start_x, start_y)
+
+def intparse_arg(arg):
+    """! Parse string arg as int."""
+    int_arg = int(arg)
+    return int_arg
+
+def validate_sprite(palette, width, height, target_palette, target_size):
+    """! Ensure a sprite has the same palette and size as the target values."""
+    target_width = target_size[0]
+    target_height = target_size[1]
+    if palette != target_palette: #Must have same palette as first sprite
+        print(f"\texpected: {target_palette}")
+        print(f"\tfound: {palette}\n")
+        print("All frames must use the same palette.\n")
+        return False
+    if width != target_width: #Must have same width as first sprite
+        print(f"\texpected: {target_width}")
+        print(f"\tfound: {width}\n")
+        print("All frames must have the same width.\n")
+        return False
+    if height != target_height: #Must have same height as first sprite
+        print(f"\texpected: {target_height}")
+        print(f"\tfound: {height}\n")
+        print("All frames must have the same height.\n")
+        return False
+    return True

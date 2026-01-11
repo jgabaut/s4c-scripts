@@ -81,6 +81,7 @@ Made for use with [sprites4curses](https://github.com/jgabaut/sprites4curses).
   - The sprite height
   - The thickness of the separator between sprites
   - The start coordinate (aka, the first sprite's left corner).
+  - The number of sprites expected
 
 ### cut_sheet <a name = "cut_sheet_py"></a>
 
@@ -94,6 +95,7 @@ Made for use with [sprites4curses](https://github.com/jgabaut/sprites4curses).
   - The sprite height
   - The thickness of the separator between sprites
   - The start coordinate (aka, the first sprite's left corner).
+  - The number of sprites expected
 
 ### png_resize <a name = "png_resize_py"></a>
 
