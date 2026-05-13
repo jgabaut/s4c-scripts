@@ -20,8 +20,6 @@
 import math
 from typing import NamedTuple
 
-S4C_MAX_COLORS = 256
-
 class SheetArgs(NamedTuple):
     """! Defines a spritesheet."""
     sprite_width: int
@@ -341,8 +339,23 @@ def intparse_arg(arg):
     int_arg = int(arg)
     return int_arg
 
-def validate_sprite(palette, width, height, target_palette, target_size):
+def validate_palette(mode, palette):
+    """! Ensure the palette is valid for current mode."""
+    limit = 127 - ord('1')
+    if mode == "cfile-bytes":
+        limit = 0xFF - ord('!')
+
+    if len(palette) > limit: #Must not have more colors than current s4c supports
+        print(f"\texpected: <= {limit}")
+        print(f"\tfound: {len(palette)}\n")
+        print(f"Mode {mode}: Palette should not have more than {limit} colors.\n")
+        return False
+    return True
+
+def validate_sprite(mode, img_size, target_size, palette, target_palette):
     """! Ensure a sprite has the same palette and size as the target values."""
+    width = img_size[0]
+    height = img_size[1]
     target_width = target_size[0]
     target_height = target_size[1]
     if palette != target_palette: #Must have same palette as first sprite
@@ -360,9 +373,4 @@ def validate_sprite(palette, width, height, target_palette, target_size):
         print(f"\tfound: {height}\n")
         print("All frames must have the same height.\n")
         return False
-    if len(palette) > S4C_MAX_COLORS: #Must not have more colors than current s4c supports
-        print(f"\texpected: <= S4C_MAX_COLORS ({S4C_MAX_COLORS})")
-        print(f"\tfound: {len(palette)}\n")
-        print("Palette should not have more than S4C_MAX_COLORS colors.\n")
-        return False
-    return True
+    return validate_palette(mode, palette)

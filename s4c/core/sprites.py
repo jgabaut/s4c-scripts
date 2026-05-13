@@ -152,10 +152,9 @@ def print_converted_sprites(mode, direc, *args):
             target_sprites.append([conv_chars, frame_width, frame_height,
                                rbg_palette, palette_size])
         else:
-            if not validate_sprite(rbg_palette, frame_width, frame_height,
+            target_size = target_sprites[0][1], target_sprites[0][2] #width, height
+            if not validate_sprite(mode, (frame_width, frame_height), target_size, rbg_palette,
                                 target_sprites[0][3], #palette
-                                (target_sprites[0][1], #width
-                                target_sprites[0][2]) #height
                                 ):
                 print(f"Sprite {idx} is not valid")
                 return False

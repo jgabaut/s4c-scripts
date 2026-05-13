@@ -149,11 +149,12 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
                 target_sprites.append([chars, sprite.size[0], sprite.size[1],
                                        rgb_palette, len(rgb_palette)])
             else:
-                if not validate_sprite(rgb_palette, sprite.size[0], sprite.size[1],
-                                    target_sprites[0][3], #palette
-                                    (target_sprites[0][1], #width
-                                    target_sprites[0][2]) #height
-                                    ):
+                if not validate_sprite(
+                    mode,
+                    (sprite.size[0], sprite.size[1]), #frame width, height
+                    (target_sprites[0][1], target_sprites[0][2]), # target width, height
+                    rgb_palette, target_sprites[0][3], #target palette
+                ):
                     print(f"Sprite x {x_i} y {y_i} is not valid")
                     return False
 
