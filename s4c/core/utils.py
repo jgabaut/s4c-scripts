@@ -15,7 +15,7 @@
 #
 # @section author_utils Author(s)
 # - Created by jgabaut on 19/01/2024.
-# - Modified by jgabaut on 13/05/2025.
+# - Modified by jgabaut on 13/05/2026.
 
 import math
 from typing import NamedTuple
