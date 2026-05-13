@@ -45,12 +45,14 @@ from .utils import print_heading
 from .utils import print_impl_ending
 from .utils import get_converted_char
 from .utils import new_char_map
+from .utils import get_converted_byte
+from .utils import new_byte_map
 from .utils import log_wrong_argnum
 from .utils import validate_sprite
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.2.1"
+SCRIPT_VERSION = "0.2.2"
 EXPECTED_ARGS = 2
 
 # Expects the sprite directory name as first argument.
@@ -66,9 +68,10 @@ def usage():
     print("\n  mode:  \n\ts4c-file\n\tC-header\n\tC-impl")
     sys.exit(1)
 
-def convert_sprite(file):
+def convert_sprite(mode, file):
     """! Takes a image and converts each pixel to a char for its color (closest match to char_map).
 
+    @param mode   The conversion mode.
     @param file   The image file to convert.
 
     @return  A tuple of : char matrix, width, height, rbg palette, palette size.
@@ -86,23 +89,20 @@ def convert_sprite(file):
 
     palette_size = len(rgb_palette)
 
-    # Create the char_map dictionary based on the color values
-    char_map = new_char_map(rgb_palette)
+    is_bytes = mode == "cfile-bytes"
+    color_map = (new_byte_map if is_bytes else new_char_map)(rgb_palette)
+    converter = get_converted_byte if is_bytes else get_converted_char
+    w, h = img.size
 
-    # Convert each pixel to its corresponding character representation
-    r, g, b = 0, 0, 0
-    chars = []
-    for y in range(img.size[1]): #Height
-        line = ""
-        for x in range(img.size[0]): #Width
-            color_index = img.getpixel((x, y))
-            r, g, b = rgb_palette[color_index]
-            char = get_converted_char(char_map, r, g, b)
-            line += char
+    chars = [
+        "".join(
+            converter(color_map, *rgb_palette[img.getpixel((x, y))])
+            for x in range(w)
+        )
+        for y in range(h)
+    ]
 
-        chars.append(line)
-
-    return (chars, img.size[0], img.size[1], rgb_palette, palette_size)
+    return chars, w, h, rgb_palette, palette_size
 
 def print_converted_sprites(mode, direc, *args):
     """! Takes a mode (s4c, header, cfile) and a dir with images, calls convert_sprite on each one.
@@ -113,7 +113,16 @@ def print_converted_sprites(mode, direc, *args):
       or the version-tagged s4c-file.
     @param direc   The directory of image files to convert and print.
     """
-    if mode not in ('s4c', 'header', 'cfile', 'header-exp', 'cfile-exp') :
+    base_mode_list = (
+        's4c',
+        'header',
+        'cfile',
+        'header-exp',
+        'cfile-exp',
+        'cfile-bytes',
+        'header-bytes'
+    )
+    if mode not in base_mode_list :
         print(f"Unexpected mode value in print_converted_sprites(): {mode}")
         usage()
     if mode in ('header-exp', 'cfile-exp') and len(args) < 1:
@@ -138,7 +147,7 @@ def print_converted_sprites(mode, direc, *args):
                       int(re.search(r'\d+', f).group()))):
         # convert a sprite and print the result
         (conv_chars, frame_width, frame_height, rbg_palette,
-         palette_size) = convert_sprite(file)
+         palette_size) = convert_sprite(mode, file)
         if idx == 0:
             target_sprites.append([conv_chars, frame_width, frame_height,
                                rbg_palette, palette_size])

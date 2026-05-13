@@ -47,27 +47,32 @@ def color_distance(c1, c2):
 
 def convert_mode_lit(mode):
     """! Try converting the passed mode string to the internal representation."""
-    if mode == "s4c-file":
-        return "s4c"
-    if mode == "C-header":
-        return "header"
-    if mode == "C-header-exp":
-        return "header-exp"
-    if mode == "C-impl":
-        return "cfile"
-    if mode == "C-impl-exp":
-        return "cfile-exp"
-    print("Error: wrong mode request")
-    print(f"--> Found: {mode}")
-    print("--> Expected: \'C-impl\' | \'C-header\' | \'s4c-file\'\n")
-    return "INVALID"
+    mapping = {
+        "s4c-file": "s4c",
+        "C-header": "header",
+        "C-header-exp": "header-exp",
+        "C-header-bytes": "header-bytes",
+        "C-impl": "cfile",
+        "C-impl-exp": "cfile-exp",
+        "C-impl-bytes": "cfile-bytes",
+    }
 
-def print_animation_header(target_name, file_version):
+    try:
+        return mapping[mode]
+    except KeyError:
+        print("Error: wrong mode request")
+        print(f"--> Found: {mode}")
+        print("--> Expected: 'C-impl' | 'C-header' | 's4c-file'")
+        return "INVALID"
+
+def print_animation_header(mode, target_name, file_version):
     """! Print the beginning of animation header for a target."""
     print(f"#ifndef {target_name.upper()}_S4C_H_")
     print(f"#define {target_name.upper()}_S4C_H_")
     print(f"#define {target_name.upper()}_S4C_H_VERSION \"{file_version}\"")
     print("")
+    if mode == "header-bytes":
+        print("#include <stdint.h>\n")
     print("/**")
     print(f" * Declares animation matrix vector for {target_name}.")
     print(" */")
@@ -93,7 +98,7 @@ def print_heading(mode, target_name, file_version, sizes, s4c_path):
     if mode == "s4c":
         print(f"{file_version}")
     elif mode == "header":
-        print_animation_header(target_name, file_version)
+        print_animation_header(mode, target_name, file_version)
         #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
 
         ###
@@ -112,8 +117,29 @@ def print_heading(mode, target_name, file_version, sizes, s4c_path):
         print(f"extern char {target_name}[{target_name.upper()}_TOT_FRAMES+1][{r_txt}][{c_txt}];\n")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
         return True
+    elif mode == "header-bytes":
+        print_animation_header(mode, target_name, file_version)
+        #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
+
+        ###
+        #We'd like to print s4c header inclusion but 0.1.x CLI interface does not require
+        # it for header mode
+        #
+        #print_wrapped_s4c_inclusion(s4c_path)
+        ###
+
+        print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames}")
+        #Instead of accurately using the sprite's num of frames, we use the defined macro
+        # since we expect them to be the same
+        #print(f"extern char {target_name}[{num_frames}][S4C_MAXROWS][S4C_MAXCOLS];")
+        r_txt="S4C_MAXROWS"
+        c_txt="S4C_MAXCOLS"
+        ty="uint8_t"
+        print(f"extern {ty} {target_name}[{target_name.upper()}_TOT_FRAMES+1][{r_txt}][{c_txt}];\n")
+        print(f"\n#endif // {target_name.upper()}_S4C_H_")
+        return True
     elif mode == "header-exp":
-        print_animation_header(target_name, file_version)
+        print_animation_header(mode, target_name, file_version)
         #s4c_path = args[0]
         print_wrapped_s4c_inclusion(s4c_path)
         print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames}")
@@ -127,7 +153,9 @@ def print_heading(mode, target_name, file_version, sizes, s4c_path):
         print(f"extern S4C_Color {target_name}_palette[{target_name.upper()}_TOT_COLORS+1];\n")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
         return True
-    elif mode in ('cfile', 'cfile-exp'):
+    elif mode in ('cfile', 'cfile-exp', 'cfile-bytes'):
+        if mode == "cfile-bytes":
+            print("#include <stdint.h>\n")
         print(f"#include \"{target_name}.h\"\n")
     return False
 
@@ -146,6 +174,30 @@ def print_palette_as_s4c_color_array(rgb_palette, palette_name):
         print(f"\t\t.red = {color[0]},\n\t\t.green = {color[1]},\n\t\t.blue = {color[2]}")
         print("\t},")
 
+def emit_c_row(row):
+    """! Takes a char row and emit a valid C representation of it.
+    @param row The char row to process
+    """
+    out = []
+
+    for c in row:
+        v = ord(c)
+
+        # escape backslash
+        if v == ord('\\'):
+            out.append("\\\\")
+        # escape double quote
+        elif v == ord('"'):
+            out.append('\\"')
+        # printable ASCII only
+        elif 32 <= v <= 126:
+            out.append(chr(v))
+        # fallback: hex byte
+        else:
+            out.append(f"\\x{v:02X}")
+
+    return "".join(out)
+
 def print_impl_ending(mode, target_name, _num_frames, target_sprites):
     """! Print the actual impl ending for a target.
     Replaces dashes in target_name with underscores.
@@ -156,7 +208,7 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
                                rgb_palette, palette_size]
     """
     target_name.replace("-","_")
-    if mode == "cfile":
+    if mode == 'cfile':
         #print("char {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
@@ -164,6 +216,15 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
         r_txt="S4C_MAXROWS"
         c_txt="S4C_MAXCOLS"
         print(f"char {target_name}[{target_name.upper()}_TOT_FRAMES+1][{r_txt}][{c_txt}] = ", "{\n")
+    elif mode == 'cfile-bytes':
+        #print("uint8_t {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
+        #Instead of accurately using the sprite's num of frames, we use the defined macro
+        # since we expect them to be the same
+        #print(f"uint8_t {target_name}[{num_frames}][S4C_MAXROWS][S4C_MAXCOLS] = ", "{\n")
+        r_txt="S4C_MAXROWS"
+        c_txt="S4C_MAXCOLS"
+        ty="uint8_t"
+        print(f"{ty} {target_name}[{target_name.upper()}_TOT_FRAMES+1][{r_txt}][{c_txt}] = ", "{\n")
     elif mode == "cfile-exp":
         #s4c_path = args[0]
         #Using the first sprite's palette since they must be all equal
@@ -181,6 +242,19 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
             print("\t{")
             for row in target[0]:
                 print("\t\t\""+row+"\",")
+        elif mode == 'cfile-bytes':
+            print("\t{")
+            for row in target[0]:
+                #hex_row = ", ".join(f"0x{ord(c):02X}" for c in row)
+                #print(f"\t\t{{ {hex_row} }},")
+                #
+                #formatted = ",".join(
+                #    f"'{c}'" if ord(c) <= 126 else f"0x{ord(c):02X}"
+                #    for c in row
+                #)
+                #print(f"\t\t{{ {formatted} }},")
+                row_str = emit_c_row(row)
+                print(f'\t\t"{row_str}",')
         elif mode == "cfile-exp":
             print("\t(S4C_Sprite) {")
             print("\t\t.data = {")
@@ -226,6 +300,26 @@ def new_char_map(rgb_palette):
                 char_map[color] = chr(ord('1') + char_index)
             char_index += 1
     return char_map
+
+def get_converted_byte(byte_map, r, g, b):
+    """"! Returns a byte looking up byte_map, for passed color."""
+    if (r, g, b) in byte_map:
+        return byte_map[(r, g, b)]
+    # Get the closest color in the byte_map
+    closest_color = min(byte_map,
+                        key=lambda c:
+                        color_distance(c, (r, g, b)))
+    return byte_map[closest_color]
+
+def new_byte_map(rgb_palette):
+    """! Creates a new byte map for the palette."""
+    byte_map = {}
+    byte_index = 0
+    for color in rgb_palette:
+        if color not in byte_map:
+            byte_map[color] = chr(ord('!') + byte_index)
+            byte_index += 1
+    return byte_map
 
 def log_wrong_argnum(expected, args):
     """! Logs an error message for passing wrong number of arguments."""
