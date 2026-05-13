@@ -35,7 +35,7 @@
 #
 # @section author_spritesheet Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 29/09/2025.
+# - Modified by jgabaut on 13/05/2026.
 
 # Imports
 import sys
@@ -112,13 +112,13 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
     #for i in range(img.size[1] // (sprite_h + sep_size * (sprites_per_column - 1))):
 
     target_sprites = []
-    for k in range((img.size[0] - s.start_x + s.sep_size) // (s.sprite_width + s.sep_size)):
-        for j in range((img.size[1] - s.start_y + s.sep_size) // (s.sprite_height + s.sep_size)):
+    for x_i in range((img.size[0] - s.start_x + s.sep_size) // (s.sprite_width + s.sep_size)):
+        for y_i in range((img.size[1] - s.start_y + s.sep_size) // (s.sprite_height + s.sep_size)):
             if len(target_sprites) >= s.sprites_num:
                 continue #We ignore remaining frames
-            spr_x = s.start_x + j * (s.sprite_width + s.sep_size)
+            spr_x = s.start_x + x_i * (s.sprite_width + s.sep_size)
             #+ (sep_size if j > 0 else 0)
-            spr_y = s.start_y + k * (s.sprite_height + s.sep_size)
+            spr_y = s.start_y + y_i * (s.sprite_height + s.sep_size)
             #+ k * (sprite_h + sep_size * (sprites_per_column - 1))
                 # + (sep_size if k > 0 else 0)
             sprite = img.crop((spr_x, spr_y, spr_x + s.sprite_width , spr_y + s.sprite_height))
@@ -143,6 +143,7 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
                                     (target_sprites[0][1], #width
                                     target_sprites[0][2]) #height
                                     ):
+                    print(f"Sprite x {x_i} y {y_i} is not valid")
                     return False
 
                 target_sprites.append([chars, sprite.size[0], sprite.size[1],
