@@ -35,7 +35,7 @@
 #
 # @section author_spritesheet Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 29/09/2025.
+# - Modified by jgabaut on 13/05/2026.
 
 # Imports
 import sys
@@ -46,6 +46,8 @@ from .utils import print_heading
 from .utils import print_impl_ending
 from .utils import get_converted_char
 from .utils import new_char_map
+from .utils import get_converted_byte
+from .utils import new_byte_map
 from .utils import log_wrong_argnum
 from .utils import validate_sprite
 from .utils import intparse_args
@@ -54,7 +56,7 @@ from .utils import SheetArgs
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.2.0"
+SCRIPT_VERSION = "0.2.2"
 F_STR_ARGS = "<mode> <sheet>\
  <sprite_width> <sprite_heigth>\
  <separator_size> <start_x> <start_y> <num_sprites>"
@@ -75,20 +77,29 @@ def usage():
     print("\n    mode:\n\t  s4c-file\n\t  C-header\n\t  C-impl")
     sys.exit(1)
 
-def parse_sprite(sprite, rgb_palette, char_map):
+def parse_sprite(mode, sprite, rgb_palette, char_map):
     """! Parse sprite using the palette and charmap, returns char array."""
     chars = []
     curr_color = (0, 0, 0)
-    for y in range(sprite.size[1]):
-        line = ""
-        for x in range(sprite.size[0]):
-            color_index = sprite.getpixel((x, y))
-            curr_color = rgb_palette[color_index]
-            char = get_converted_char(char_map, curr_color[0], curr_color[1], curr_color[2])
-            line += char
-        chars.append(line)
+    if mode == "cfile-bytes":
+        for y in range(sprite.size[1]):
+            line = ""
+            for x in range(sprite.size[0]):
+                color_index = sprite.getpixel((x, y))
+                curr_color = rgb_palette[color_index]
+                char = get_converted_byte(char_map, curr_color[0], curr_color[1], curr_color[2])
+                line += char
+            chars.append(line)
+    else:
+        for y in range(sprite.size[1]):
+            line = ""
+            for x in range(sprite.size[0]):
+                color_index = sprite.getpixel((x, y))
+                curr_color = rgb_palette[color_index]
+                char = get_converted_char(char_map, curr_color[0], curr_color[1], curr_color[2])
+                line += char
+            chars.append(line)
     return chars
-
 
 def convert_spritesheet(mode, filename, s: SheetArgs, *args):
     """! Converts a spritesheet to a 3D char array repr of pixel color.
@@ -112,13 +123,13 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
     #for i in range(img.size[1] // (sprite_h + sep_size * (sprites_per_column - 1))):
 
     target_sprites = []
-    for k in range((img.size[0] - s.start_x + s.sep_size) // (s.sprite_width + s.sep_size)):
-        for j in range((img.size[1] - s.start_y + s.sep_size) // (s.sprite_height + s.sep_size)):
+    for x_i in range((img.size[0] - s.start_x + s.sep_size) // (s.sprite_width + s.sep_size)):
+        for y_i in range((img.size[1] - s.start_y + s.sep_size) // (s.sprite_height + s.sep_size)):
             if len(target_sprites) >= s.sprites_num:
                 continue #We ignore remaining frames
-            spr_x = s.start_x + j * (s.sprite_width + s.sep_size)
+            spr_x = s.start_x + x_i * (s.sprite_width + s.sep_size)
             #+ (sep_size if j > 0 else 0)
-            spr_y = s.start_y + k * (s.sprite_height + s.sep_size)
+            spr_y = s.start_y + y_i * (s.sprite_height + s.sep_size)
             #+ k * (sprite_h + sep_size * (sprites_per_column - 1))
                 # + (sep_size if k > 0 else 0)
             sprite = img.crop((spr_x, spr_y, spr_x + s.sprite_width , spr_y + s.sprite_height))
@@ -130,19 +141,21 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
                            for n in range(0, len(sprite.getpalette()), 3)]
 
             # Create the char_map dictionary based on the color values
-            char_map = new_char_map(rgb_palette)
+            char_map = (new_byte_map if mode == "cfile-bytes" else new_char_map)(rgb_palette)
 
-            chars = parse_sprite(sprite, rgb_palette, char_map)
+            chars = parse_sprite(mode, sprite, rgb_palette, char_map)
 
             if len(target_sprites) == 0:
                 target_sprites.append([chars, sprite.size[0], sprite.size[1],
                                        rgb_palette, len(rgb_palette)])
             else:
-                if not validate_sprite(rgb_palette, sprite.size[0], sprite.size[1],
-                                    target_sprites[0][3], #palette
-                                    (target_sprites[0][1], #width
-                                    target_sprites[0][2]) #height
-                                    ):
+                if not validate_sprite(
+                    mode,
+                    (sprite.size[0], sprite.size[1]), #frame width, height
+                    (target_sprites[0][1], target_sprites[0][2]), # target width, height
+                    rgb_palette, target_sprites[0][3], #target palette
+                ):
+                    print(f"Sprite x {x_i} y {y_i} is not valid")
                     return False
 
                 target_sprites.append([chars, sprite.size[0], sprite.size[1],
