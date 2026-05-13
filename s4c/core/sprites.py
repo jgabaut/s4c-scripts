@@ -32,7 +32,7 @@
 #
 # @section author_sprites Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 29/09/2025.
+# - Modified by jgabaut on 13/05/2026.
 
 # Imports
 import sys
@@ -50,7 +50,7 @@ from .utils import validate_sprite
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.2.0"
+SCRIPT_VERSION = "0.2.1"
 EXPECTED_ARGS = 2
 
 # Expects the sprite directory name as first argument.
@@ -148,6 +148,7 @@ def print_converted_sprites(mode, direc, *args):
                                 (target_sprites[0][1], #width
                                 target_sprites[0][2]) #height
                                 ):
+                print(f"Sprite {idx} is not valid")
                 return False
             target_sprites.append([conv_chars, frame_width, frame_height,
                                rbg_palette, palette_size])
