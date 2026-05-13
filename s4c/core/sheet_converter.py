@@ -54,7 +54,7 @@ from .utils import SheetArgs
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.2.0"
+SCRIPT_VERSION = "0.2.1"
 F_STR_ARGS = "<mode> <sheet>\
  <sprite_width> <sprite_heigth>\
  <separator_size> <start_x> <start_y> <num_sprites>"
