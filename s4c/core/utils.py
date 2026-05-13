@@ -15,10 +15,12 @@
 #
 # @section author_utils Author(s)
 # - Created by jgabaut on 19/01/2024.
-# - Modified by jgabaut on 29/09/2025.
+# - Modified by jgabaut on 13/05/2025.
 
 import math
 from typing import NamedTuple
+
+S4C_MAX_COLORS = 256
 
 class SheetArgs(NamedTuple):
     """! Defines a spritesheet."""
@@ -263,5 +265,10 @@ def validate_sprite(palette, width, height, target_palette, target_size):
         print(f"\texpected: {target_height}")
         print(f"\tfound: {height}\n")
         print("All frames must have the same height.\n")
+        return False
+    if len(palette) > S4C_MAX_COLORS: #Must not have more colors than current s4c supports
+        print(f"\texpected: <= S4C_MAX_COLORS ({S4C_MAX_COLORS})")
+        print(f"\tfound: {len(palette)}\n")
+        print("Palette should not have more than S4C_MAX_COLORS colors.\n")
         return False
     return True
