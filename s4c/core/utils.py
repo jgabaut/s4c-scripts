@@ -15,7 +15,7 @@
 #
 # @section author_utils Author(s)
 # - Created by jgabaut on 19/01/2024.
-# - Modified by jgabaut on 13/05/2026.
+# - Modified by jgabaut on 26/07/2026.
 
 import math
 from typing import NamedTuple
@@ -187,6 +187,8 @@ def emit_c_row(row):
         # escape double quote
         elif v == ord('"'):
             out.append('\\"')
+        elif v == ord('?'):
+            out.append('\\?')
         # printable ASCII only
         elif 32 <= v <= 126:
             out.append(chr(v))
