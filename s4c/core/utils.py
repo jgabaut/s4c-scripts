@@ -15,7 +15,7 @@
 #
 # @section author_utils Author(s)
 # - Created by jgabaut on 19/01/2024.
-# - Modified by jgabaut on 26/07/2026.
+# - Modified by jgabaut on 27/07/2026.
 
 import math
 from typing import NamedTuple
@@ -208,7 +208,7 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
                                rgb_palette, palette_size]
     """
     target_name.replace("-","_")
-    if mode == 'cfile':
+    if mode in ('cfile', 's4c'):
         #print("char {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
@@ -238,7 +238,7 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
 
     for idx, target in enumerate(target_sprites):
         print(f"\t//Frame {idx}")
-        if mode == "cfile":
+        if mode in ("cfile", "s4c"):
             print("\t{")
             for row in target[0]:
                 print("\t\t\""+row+"\",")
