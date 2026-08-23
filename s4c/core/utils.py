@@ -15,7 +15,7 @@
 #
 # @section author_utils Author(s)
 # - Created by jgabaut on 19/01/2024.
-# - Modified by jgabaut on 27/07/2026.
+# - Modified by jgabaut on 23/08/2026.
 
 import math
 from typing import NamedTuple
@@ -50,9 +50,11 @@ def convert_mode_lit(mode):
         "C-header": "header",
         "C-header-exp": "header-exp",
         "C-header-bytes": "header-bytes",
+        "C-header-256": "header-256",
         "C-impl": "cfile",
         "C-impl-exp": "cfile-exp",
         "C-impl-bytes": "cfile-bytes",
+        "C-impl-256": "cfile-256"
     }
 
     try:
@@ -115,7 +117,7 @@ def print_heading(mode, target_name, file_version, sizes, s4c_path):
         print(f"extern char {target_name}[{target_name.upper()}_TOT_FRAMES+1][{r_txt}][{c_txt}];\n")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
         return True
-    elif mode == "header-bytes":
+    elif mode in ( "header-bytes", "header-256" ) :
         print_animation_header(mode, target_name, file_version)
         #print("extern char {}[{}][{}][{}];".format(target_name,frames,ysize,xsize))
 
@@ -151,8 +153,8 @@ def print_heading(mode, target_name, file_version, sizes, s4c_path):
         print(f"extern S4C_Color {target_name}_palette[{target_name.upper()}_TOT_COLORS+1];\n")
         print(f"\n#endif // {target_name.upper()}_S4C_H_")
         return True
-    elif mode in ('cfile', 'cfile-exp', 'cfile-bytes'):
-        if mode == "cfile-bytes":
+    elif mode in ('cfile', 'cfile-exp', 'cfile-bytes', 'cfile-256'):
+        if mode in ("cfile-bytes", "cfile-256"):
             print("#include <stdint.h>\n")
         print(f"#include \"{target_name}.h\"\n")
     return False
@@ -172,29 +174,33 @@ def print_palette_as_s4c_color_array(rgb_palette, palette_name):
         print(f"\t\t.red = {color[0]},\n\t\t.green = {color[1]},\n\t\t.blue = {color[2]}")
         print("\t},")
 
-def emit_c_row(row):
+def emit_c_row(row, mode):
     """! Takes a char row and emit a valid C representation of it.
     @param row The char row to process
+    @param mode The mode to use
     """
     out = []
 
     for c in row:
         v = ord(c)
 
-        # escape backslash
-        if v == ord('\\'):
-            out.append("\\\\")
-        # escape double quote
-        elif v == ord('"'):
-            out.append('\\"')
-        elif v == ord('?'):
-            out.append('\\?')
-        # printable ASCII only
-        elif 32 <= v <= 126:
-            out.append(chr(v))
-        # fallback: hex byte
-        else:
+        if mode == 'cfile-256':
             out.append(f"\\x{v:02X}")
+        else:
+            # escape backslash
+            if v == ord('\\'):
+                out.append("\\\\")
+            # escape double quote
+            elif v == ord('"'):
+                out.append('\\"')
+            elif v == ord('?'):
+                out.append('\\?')
+            # printable ASCII only
+            elif 32 <= v <= 126:
+                out.append(chr(v))
+            # fallback: hex byte
+            else:
+                out.append(f"\\x{v:02X}")
 
     return "".join(out)
 
@@ -216,7 +222,7 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
         r_txt="S4C_MAXROWS"
         c_txt="S4C_MAXCOLS"
         print(f"char {target_name}[{target_name.upper()}_TOT_FRAMES+1][{r_txt}][{c_txt}] = ", "{\n")
-    elif mode == 'cfile-bytes':
+    elif mode in ('cfile-bytes', 'cfile-256'):
         #print("uint8_t {}[{}][{}][{}] = ".format(target_name,frames,ysize,xsize) + "{\n")
         #Instead of accurately using the sprite's num of frames, we use the defined macro
         # since we expect them to be the same
@@ -242,7 +248,7 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
             print("\t{")
             for row in target[0]:
                 print("\t\t\""+row+"\",")
-        elif mode == 'cfile-bytes':
+        elif mode in ('cfile-bytes', 'cfile-256'):
             print("\t{")
             for row in target[0]:
                 #hex_row = ", ".join(f"0x{ord(c):02X}" for c in row)
@@ -253,7 +259,7 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
                 #    for c in row
                 #)
                 #print(f"\t\t{{ {formatted} }},")
-                row_str = emit_c_row(row)
+                row_str = emit_c_row(row, mode)
                 print(f'\t\t"{row_str}",')
         elif mode == "cfile-exp":
             print("\t(S4C_Sprite) {")
@@ -311,15 +317,24 @@ def get_converted_byte(byte_map, r, g, b):
                         color_distance(c, (r, g, b)))
     return byte_map[closest_color]
 
-def new_byte_map(rgb_palette):
+def new_byte_map(rgb_palette, mode):
     """! Creates a new byte map for the palette."""
     byte_map = {}
     byte_index = 0
+    start = '!'
+    if mode == 'cfile-256':
+        start = '\0'
     for color in rgb_palette:
         if color not in byte_map:
-            byte_map[color] = chr(ord('!') + byte_index)
+            byte_map[color] = chr(ord(start) + byte_index)
             byte_index += 1
     return byte_map
+
+def new_map(rgb_palette, mode):
+    """! Creates a byte map or a legacy char map."""
+    if mode in ("cfile-bytes", "cfile-256"):
+        return new_byte_map(rgb_palette, mode)
+    return new_char_map(rgb_palette)
 
 def log_wrong_argnum(expected, args):
     """! Logs an error message for passing wrong number of arguments."""
