@@ -32,7 +32,7 @@
 #
 # @section author_s4c_cli Author(s)
 # - Created by jgabaut on 02/01/2024.
-# - Modified by jgabaut on 27/07/2026.
+# - Modified by jgabaut on 23/08/2026.
 
 import sys
 import os
@@ -42,7 +42,7 @@ from .core.sprites import main as sprites_main
 from .core.sheet_converter import main as sheet_converter_main
 from .core.png_resize import main as png_resize_main
 
-S4C_CLI_VERSION = "0.2.5"
+S4C_CLI_VERSION = "0.2.6"
 
 EXPECTED_S4C_ANIMATE_V = "0.5.0"
 

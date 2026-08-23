@@ -174,7 +174,7 @@ def print_palette_as_s4c_color_array(rgb_palette, palette_name):
         print(f"\t\t.red = {color[0]},\n\t\t.green = {color[1]},\n\t\t.blue = {color[2]}")
         print("\t},")
 
-def emit_c_row(row, mode):
+def emit_c_row(row):
     """! Takes a char row and emit a valid C representation of it.
     @param row The char row to process
     @param mode The mode to use
@@ -183,24 +183,20 @@ def emit_c_row(row, mode):
 
     for c in row:
         v = ord(c)
-
-        if mode == 'cfile-256':
-            out.append(f"\\x{v:02X}")
+        # escape backslash
+        if v == ord('\\'):
+            out.append("\\\\")
+        # escape double quote
+        elif v == ord('"'):
+            out.append('\\"')
+        elif v == ord('?'):
+            out.append('\\?')
+        # printable ASCII only
+        elif 32 <= v <= 126:
+            out.append(chr(v))
+        # fallback: hex byte
         else:
-            # escape backslash
-            if v == ord('\\'):
-                out.append("\\\\")
-            # escape double quote
-            elif v == ord('"'):
-                out.append('\\"')
-            elif v == ord('?'):
-                out.append('\\?')
-            # printable ASCII only
-            elif 32 <= v <= 126:
-                out.append(chr(v))
-            # fallback: hex byte
-            else:
-                out.append(f"\\x{v:02X}")
+            out.append(f"\\x{v:02X}")
 
     return "".join(out)
 
@@ -259,7 +255,7 @@ def print_impl_ending(mode, target_name, _num_frames, target_sprites):
                 #    for c in row
                 #)
                 #print(f"\t\t{{ {formatted} }},")
-                row_str = emit_c_row(row, mode)
+                row_str = emit_c_row(row)
                 print(f'\t\t"{row_str}",')
         elif mode == "cfile-exp":
             print("\t(S4C_Sprite) {")
