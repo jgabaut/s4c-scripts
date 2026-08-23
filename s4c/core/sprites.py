@@ -32,7 +32,7 @@
 #
 # @section author_sprites Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 13/05/2026.
+# - Modified by jgabaut on 23/08/2026.
 
 # Imports
 import sys
@@ -44,15 +44,14 @@ from .utils import convert_mode_lit
 from .utils import print_heading
 from .utils import print_impl_ending
 from .utils import get_converted_char
-from .utils import new_char_map
+from .utils import new_map
 from .utils import get_converted_byte
-from .utils import new_byte_map
 from .utils import log_wrong_argnum
 from .utils import validate_sprite
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.2.2"
+SCRIPT_VERSION = "0.2.3"
 EXPECTED_ARGS = 2
 
 # Expects the sprite directory name as first argument.
@@ -89,8 +88,8 @@ def convert_sprite(mode, file):
 
     palette_size = len(rgb_palette)
 
-    is_bytes = mode == "cfile-bytes"
-    color_map = (new_byte_map if is_bytes else new_char_map)(rgb_palette)
+    color_map = new_map(rgb_palette, mode)
+    is_bytes = mode in ("cfile-bytes", "cfile-256")
     converter = get_converted_byte if is_bytes else get_converted_char
     w, h = img.size
 
@@ -120,10 +119,12 @@ def print_converted_sprites(mode, direc, *args):
         'header-exp',
         'cfile-exp',
         'cfile-bytes',
-        'header-bytes'
+        'header-bytes',
+        'cfile-256',
+        'header-256'
     )
     if mode not in base_mode_list :
-        print(f"Unexpected mode value in print_converted_sprites(): {mode}")
+        print(f"Unexpected mode value in print_converted_sprites(): [{mode}]")
         usage()
     if mode in ('header-exp', 'cfile-exp') and len(args) < 1:
         print(f"Missing s4c_path in print_converted_sprites(): {mode}")

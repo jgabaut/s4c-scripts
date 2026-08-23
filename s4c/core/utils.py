@@ -54,7 +54,7 @@ def convert_mode_lit(mode):
         "C-impl": "cfile",
         "C-impl-exp": "cfile-exp",
         "C-impl-bytes": "cfile-bytes",
-        "C-impl-256": "cfile-256",
+        "C-impl-256": "cfile-256"
     }
 
     try:
@@ -317,15 +317,24 @@ def get_converted_byte(byte_map, r, g, b):
                         color_distance(c, (r, g, b)))
     return byte_map[closest_color]
 
-def new_byte_map(rgb_palette):
+def new_byte_map(rgb_palette, mode):
     """! Creates a new byte map for the palette."""
     byte_map = {}
     byte_index = 0
+    start = '!'
+    if mode == 'cfile-256':
+        start = '\0'
     for color in rgb_palette:
         if color not in byte_map:
-            byte_map[color] = chr(ord('!') + byte_index)
+            byte_map[color] = chr(ord(start) + byte_index)
             byte_index += 1
     return byte_map
+
+def new_map(rgb_palette, mode):
+    """! Creates a byte map or a legacy char map."""
+    if mode in ("cfile-bytes", "cfile-256"):
+        return new_byte_map(rgb_palette, mode)
+    return new_char_map(rgb_palette)
 
 def log_wrong_argnum(expected, args):
     """! Logs an error message for passing wrong number of arguments."""

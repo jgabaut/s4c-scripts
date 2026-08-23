@@ -35,7 +35,7 @@
 #
 # @section author_spritesheet Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 13/05/2026.
+# - Modified by jgabaut on 23/08/2026.
 
 # Imports
 import sys
@@ -45,9 +45,8 @@ from .utils import convert_mode_lit
 from .utils import print_heading
 from .utils import print_impl_ending
 from .utils import get_converted_char
-from .utils import new_char_map
 from .utils import get_converted_byte
-from .utils import new_byte_map
+from .utils import new_map
 from .utils import log_wrong_argnum
 from .utils import validate_sprite
 from .utils import intparse_args
@@ -56,7 +55,7 @@ from .utils import SheetArgs
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.2.2"
+SCRIPT_VERSION = "0.2.3"
 F_STR_ARGS = "<mode> <sheet>\
  <sprite_width> <sprite_heigth>\
  <separator_size> <start_x> <start_y> <num_sprites>"
@@ -109,7 +108,12 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
     @param filename   The input spritesheet file.
     """
 
-    if mode not in ('s4c', 'header', 'cfile', 'header-exp', 'cfile-exp') :
+    if mode not in ('s4c',
+                    'header', 'cfile',
+                    'header-exp', 'cfile-exp',
+                    'header-bytes', 'cfile-bytes',
+                    'header-256', 'cfile-256'
+                    ) :
         print(f"Unexpected mode value in convert_spritesheet(): {mode}")
         usage()
     if mode in ('header-exp', 'cfile-exp') and len(args) < 1:
@@ -141,7 +145,7 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
                            for n in range(0, len(sprite.getpalette()), 3)]
 
             # Create the char_map dictionary based on the color values
-            char_map = (new_byte_map if mode == "cfile-bytes" else new_char_map)(rgb_palette)
+            char_map = new_map(rgb_palette, mode)
 
             chars = parse_sprite(mode, sprite, rgb_palette, char_map)
 
