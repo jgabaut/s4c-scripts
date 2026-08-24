@@ -71,7 +71,7 @@ def print_animation_header(mode, target_name, file_version):
     print(f"#define {target_name.upper()}_S4C_H_")
     print(f"#define {target_name.upper()}_S4C_H_VERSION \"{file_version}\"")
     print("")
-    if mode == "header-bytes":
+    if mode in ("header-bytes", "header-256"):
         print("#include <stdint.h>\n")
     print("/**")
     print(f" * Declares animation matrix vector for {target_name}.")
