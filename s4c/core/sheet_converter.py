@@ -35,7 +35,7 @@
 #
 # @section author_spritesheet Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 23/08/2026.
+# - Modified by jgabaut on 08/10/2026.
 
 # Imports
 import sys
@@ -55,7 +55,7 @@ from .utils import SheetArgs
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.2.3"
+SCRIPT_VERSION = "0.2.4"
 F_STR_ARGS = "<mode> <sheet>\
  <sprite_width> <sprite_heigth>\
  <separator_size> <start_x> <start_y> <num_sprites>"
@@ -169,7 +169,7 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
         if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
                                                            target_sprites[0][4],
                                                            target_sprites[0][1],
-                                                           target_sprites[0][2]), ("NONE",)):
+                                                           target_sprites[0][2])):
             return True
     else:
         if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
