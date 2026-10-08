@@ -340,14 +340,15 @@ def log_wrong_argnum(expected, args):
     print(f"--> {args[1:]}\n")
 
 
-def intparse_args(s_spr_w, s_spr_h, s_sep_size, s_start_x, s_start_y):
+def intparse_args(s_spr_size, s_sep_size, s_start_x, s_start_y, s_sprites_num):
     """! Parse string arguments as int."""
-    sprite_w = int(s_spr_w)
-    sprite_h = int(s_spr_h)
+    sprite_w = int(s_spr_size[0])
+    sprite_h = int(s_spr_size[1])
     sep_size = int(s_sep_size)
     start_x = int(s_start_x)
     start_y = int(s_start_y)
-    return (sprite_w, sprite_h, sep_size, start_x, start_y)
+    sprites_num = int(s_sprites_num)
+    return SheetArgs(sprite_w, sprite_h, sep_size, start_x, start_y, sprites_num)
 
 def intparse_arg(arg):
     """! Parse string arg as int."""

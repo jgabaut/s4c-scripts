@@ -50,7 +50,6 @@ from .utils import new_map
 from .utils import log_wrong_argnum
 from .utils import validate_sprite
 from .utils import intparse_args
-from .utils import intparse_arg
 from .utils import SheetArgs
 
 ## The file format version.
@@ -195,10 +194,9 @@ def main(argv):
             mode = argv[3]
             mode = convert_mode_lit(mode)
             filename = argv[4]
-            ints = intparse_args(argv[5], argv[6], argv[7], argv[8], argv[9])
-            sprites_num = intparse_arg(argv[10])
+            sheet_args = intparse_args((argv[5], argv[6]), argv[7], argv[8], argv[9], argv[10])
             convert_spritesheet(mode,filename,
-                                SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4],sprites_num),
+                                sheet_args,
                                 s4c_path)
         else:
             log_wrong_argnum(EXPECTED_ARGS, argv)
@@ -207,10 +205,9 @@ def main(argv):
         mode = argv[1]
         mode = convert_mode_lit(mode)
         filename = argv[2]
-        ints = intparse_args(argv[3], argv[4], argv[5], argv[6], argv[7])
-        sprites_num = intparse_arg(argv[8])
+        sheet_args = intparse_args((argv[3], argv[4]), argv[5], argv[6], argv[7], argv[8])
         convert_spritesheet(mode,filename,
-                            SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4],sprites_num))
+                            sheet_args)
 
 if __name__ == "__main__":
     main(sys.argv)
