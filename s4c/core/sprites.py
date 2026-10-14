@@ -32,7 +32,7 @@
 #
 # @section author_sprites Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 23/08/2026.
+# - Modified by jgabaut on 08/10/2026.
 
 # Imports
 import sys
@@ -51,7 +51,7 @@ from .utils import validate_sprite
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.2.3"
+SCRIPT_VERSION = "0.2.4"
 EXPECTED_ARGS = 2
 
 # Expects the sprite directory name as first argument.
@@ -143,6 +143,7 @@ def print_converted_sprites(mode, direc, *args):
         frames += 1
 
     target_sprites = []
+    target_size = target_sprites[0][1], target_sprites[0][2] #width, height
     for idx, file in enumerate(sorted(glob.glob(f"{direc}/*.png"),
                       key=lambda f:
                       int(re.search(r'\d+', f).group()))):
@@ -153,7 +154,6 @@ def print_converted_sprites(mode, direc, *args):
             target_sprites.append([conv_chars, frame_width, frame_height,
                                rbg_palette, palette_size])
         else:
-            target_size = target_sprites[0][1], target_sprites[0][2] #width, height
             if not validate_sprite(mode, (frame_width, frame_height), target_size, rbg_palette,
                                 target_sprites[0][3], #palette
                                 ):
@@ -166,8 +166,10 @@ def print_converted_sprites(mode, direc, *args):
 
     if len(args) == 0:
         if print_heading(mode, target_name, FILE_VERSION,
-                         (frames, target_sprites[0][4], target_sprites[0][1], target_sprites[0][2]),
-                         ("NONE",)):
+                         (frames,
+                          target_sprites[0][4],
+                          target_size[0],
+                          target_size[1])):
             return True
     else:
         if print_heading(mode, target_name, FILE_VERSION,

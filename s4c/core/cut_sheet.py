@@ -36,7 +36,7 @@
 #
 # @section author_cut_spritesheet Author(s)
 # - Created by jgabaut on 17/04/2023.
-# - Modified by jgabaut on 12/02/2025.
+# - Modified by jgabaut on 08/10/2026.
 
 # Imports
 import sys
@@ -44,10 +44,9 @@ import os
 from PIL import Image
 from .utils import log_wrong_argnum
 from .utils import intparse_args
-from .utils import intparse_arg
 from .utils import SheetArgs
 
-SCRIPT_VERSION="0.2.0"
+SCRIPT_VERSION="0.2.1"
 
 F_ARG_OUTD = "<output_directory>"
 F_ARG_SW = "<sprite_width>"
@@ -99,9 +98,8 @@ def main(argv):
     else:
         file = argv[1]
         outdir = argv[2]
-        ints = intparse_args(argv[3], argv[4], argv[5], argv[6], argv[7])
-        sprites_num = intparse_arg(argv[8])
-        cut_spritesheet(file,outdir,SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4],sprites_num))
+        sheet_args = intparse_args((argv[3], argv[4]), argv[5], argv[6], argv[7], argv[8])
+        cut_spritesheet(file,outdir,sheet_args)
 
 if __name__ == "__main__":
     main(sys.argv)

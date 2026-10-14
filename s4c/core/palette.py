@@ -134,7 +134,7 @@ def main(argv):
             print(f"palette v{SCRIPT_VERSION}")
             print(f"FILE_VERSION v{FILE_VERSION}")
             sys.exit(0)
-        if (len(argv) == 5 and argv[1] in ('--cfile-no-include')):
+        if (len(argv) == 5 and argv[1] in '--cfile-no-include'):
             if argv[2] != 'C-impl':
                 print("Wrong arguments. Can't use --cfile-no-include outside C-impl mode")
                 usage()

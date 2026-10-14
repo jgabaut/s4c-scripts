@@ -89,7 +89,7 @@ def print_wrapped_s4c_inclusion(s4c_path):
     print("#undef S4C_SCRIPTS_PALETTE_ANIMATE_CLEANUP")
     print("#endif //PALETTE_ANIMATE_CLEANUP\n")
 
-def print_heading(mode, target_name, file_version, sizes, s4c_path):
+def print_heading(mode, target_name, file_version, sizes, s4c_path=None):
     """! Print the actual header for a target."""
     num_frames = sizes[0]
     num_colors = sizes[1]
@@ -141,6 +141,8 @@ def print_heading(mode, target_name, file_version, sizes, s4c_path):
     elif mode == "header-exp":
         print_animation_header(mode, target_name, file_version)
         #s4c_path = args[0]
+        if s4c_path is None:
+            raise ValueError("s4c_path is required for header-exp mode")
         print_wrapped_s4c_inclusion(s4c_path)
         print(f"#define {target_name.upper()}_TOT_FRAMES {num_frames}")
         print(f"#define {target_name.upper()}_TOT_COLORS {num_colors}")
@@ -338,14 +340,15 @@ def log_wrong_argnum(expected, args):
     print(f"--> {args[1:]}\n")
 
 
-def intparse_args(s_spr_w, s_spr_h, s_sep_size, s_start_x, s_start_y):
+def intparse_args(s_spr_size, s_sep_size, s_start_x, s_start_y, s_sprites_num):
     """! Parse string arguments as int."""
-    sprite_w = int(s_spr_w)
-    sprite_h = int(s_spr_h)
+    sprite_w = int(s_spr_size[0])
+    sprite_h = int(s_spr_size[1])
     sep_size = int(s_sep_size)
     start_x = int(s_start_x)
     start_y = int(s_start_y)
-    return (sprite_w, sprite_h, sep_size, start_x, start_y)
+    sprites_num = int(s_sprites_num)
+    return SheetArgs(sprite_w, sprite_h, sep_size, start_x, start_y, sprites_num)
 
 def intparse_arg(arg):
     """! Parse string arg as int."""

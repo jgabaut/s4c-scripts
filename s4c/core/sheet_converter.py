@@ -35,7 +35,7 @@
 #
 # @section author_spritesheet Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 23/08/2026.
+# - Modified by jgabaut on 08/10/2026.
 
 # Imports
 import sys
@@ -50,12 +50,11 @@ from .utils import new_map
 from .utils import log_wrong_argnum
 from .utils import validate_sprite
 from .utils import intparse_args
-from .utils import intparse_arg
 from .utils import SheetArgs
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.2.3"
+SCRIPT_VERSION = "0.2.4"
 F_STR_ARGS = "<mode> <sheet>\
  <sprite_width> <sprite_heigth>\
  <separator_size> <start_x> <start_y> <num_sprites>"
@@ -169,7 +168,7 @@ def convert_spritesheet(mode, filename, s: SheetArgs, *args):
         if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
                                                            target_sprites[0][4],
                                                            target_sprites[0][1],
-                                                           target_sprites[0][2]), ("NONE",)):
+                                                           target_sprites[0][2])):
             return True
     else:
         if print_heading(mode, target_name, FILE_VERSION, (len(target_sprites),
@@ -195,10 +194,9 @@ def main(argv):
             mode = argv[3]
             mode = convert_mode_lit(mode)
             filename = argv[4]
-            ints = intparse_args(argv[5], argv[6], argv[7], argv[8], argv[9])
-            sprites_num = intparse_arg(argv[10])
+            sheet_args = intparse_args((argv[5], argv[6]), argv[7], argv[8], argv[9], argv[10])
             convert_spritesheet(mode,filename,
-                                SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4],sprites_num),
+                                sheet_args,
                                 s4c_path)
         else:
             log_wrong_argnum(EXPECTED_ARGS, argv)
@@ -207,10 +205,9 @@ def main(argv):
         mode = argv[1]
         mode = convert_mode_lit(mode)
         filename = argv[2]
-        ints = intparse_args(argv[3], argv[4], argv[5], argv[6], argv[7])
-        sprites_num = intparse_arg(argv[8])
+        sheet_args = intparse_args((argv[3], argv[4]), argv[5], argv[6], argv[7], argv[8])
         convert_spritesheet(mode,filename,
-                            SheetArgs(ints[0],ints[1],ints[2],ints[3],ints[4],sprites_num))
+                            sheet_args)
 
 if __name__ == "__main__":
     main(sys.argv)
