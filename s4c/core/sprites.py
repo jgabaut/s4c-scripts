@@ -32,7 +32,7 @@
 #
 # @section author_sprites Author(s)
 # - Created by jgabaut on 24/02/2023.
-# - Modified by jgabaut on 08/10/2026.
+# - Modified by jgabaut on 24/10/2026.
 
 # Imports
 import sys
@@ -51,7 +51,7 @@ from .utils import validate_sprite
 
 ## The file format version.
 FILE_VERSION = "0.2.3"
-SCRIPT_VERSION = "0.2.4"
+SCRIPT_VERSION = "0.2.5"
 EXPECTED_ARGS = 2
 
 # Expects the sprite directory name as first argument.
@@ -143,7 +143,7 @@ def print_converted_sprites(mode, direc, *args):
         frames += 1
 
     target_sprites = []
-    target_size = target_sprites[0][1], target_sprites[0][2] #width, height
+    target_size = ()
     for idx, file in enumerate(sorted(glob.glob(f"{direc}/*.png"),
                       key=lambda f:
                       int(re.search(r'\d+', f).group()))):
@@ -153,6 +153,7 @@ def print_converted_sprites(mode, direc, *args):
         if idx == 0:
             target_sprites.append([conv_chars, frame_width, frame_height,
                                rbg_palette, palette_size])
+            target_size = target_sprites[0][1], target_sprites[0][2] #width, height
         else:
             if not validate_sprite(mode, (frame_width, frame_height), target_size, rbg_palette,
                                 target_sprites[0][3], #palette
